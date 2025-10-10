@@ -1,0 +1,22 @@
+# Legal Research & Paralegal MCP Server Dependencies
+# TODO: Add specific package versions and dependencies
+
+# Core MCP dependencies
+# fastmcp
+# pydantic
+# uvicorn
+
+# Legal data processing
+# lxml
+# beautifulsoup4
+# requests
+
+# Testing dependencies
+# pytest
+# pytest-cov
+# pytest-asyncio
+
+# Development dependencies
+# black
+# flake8
+# mypy
