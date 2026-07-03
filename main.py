@@ -23,6 +23,7 @@ from prompts import register_all_prompts
 from resources import register_all_resources
 from tools import register_all_tools
 from utils import audit, get_data_manager
+from feature_flags import enabled_categories
 
 logging.basicConfig(
     level=os.environ.get("LOG_LEVEL", "INFO"),
@@ -53,8 +54,10 @@ def create_server(host: str = "127.0.0.1", port: int = 8000) -> FastMCP:
     register_all_prompts(server)
 
     stats = get_data_manager().stats()
+    categories = enabled_categories()
     logger.info("Registered legal data: %s", stats)
-    audit("server_initialized", **stats)
+    logger.info("Enabled tool categories: %s", categories)
+    audit("server_initialized", **stats, enabled_categories=categories)
     return server
 
 

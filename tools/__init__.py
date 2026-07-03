@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from feature_flags import is_category_enabled
 from tools.analysis_queue_tools import register_analysis_queue_tools
 from tools.brief_tools import register_brief_tools
 from tools.citation_tools import register_citation_tools
@@ -13,13 +14,21 @@ from tools.research_tools import register_research_tools
 
 
 def register_all_tools(mcp) -> None:
-    """Register every tool category with the MCP server."""
+    """Register every enabled tool category with the MCP server."""
 
-    register_research_tools(mcp)
-    register_citation_tools(mcp)
-    register_contract_tools(mcp)
-    register_document_tools(mcp)
-    register_brief_tools(mcp)
-    register_integration_tools(mcp)
-    register_privilege_tools(mcp)
-    register_analysis_queue_tools(mcp)
+    if is_category_enabled("research"):
+        register_research_tools(mcp)
+    if is_category_enabled("citation"):
+        register_citation_tools(mcp)
+    if is_category_enabled("contract"):
+        register_contract_tools(mcp)
+    if is_category_enabled("document"):
+        register_document_tools(mcp)
+    if is_category_enabled("brief"):
+        register_brief_tools(mcp)
+    if is_category_enabled("integrations"):
+        register_integration_tools(mcp)
+    if is_category_enabled("privilege"):
+        register_privilege_tools(mcp)
+    if is_category_enabled("analysis_queue"):
+        register_analysis_queue_tools(mcp)
