@@ -72,19 +72,24 @@ mcp run main.py:mcp     # runs the server via the CLI
 
 ## 🧰 Capabilities
 
-### Tools (14)
+### Tools (18)
 
 | Category | Tool | Purpose |
 | --- | --- | --- |
 | Research | `search_precedents` | Keyword‑ranked precedent search over local cases |
 | Research | `search_case_law` | Case‑law search with relevance ranking and summaries |
 | Research | `extract_statute` | Statute text with optional legislative context |
+| Research | `research_legal_issue` | Multi‑source research across local cases, statutes, and CourtListener |
 | Citation | `validate_citation` | Validate structure and reporter; return issues |
 | Citation | `normalize_citation` | Normalize spacing + Bluebook‑style abbreviations |
 | Citation | `verify_citation_integrity` | Cross‑check a citation against the case database |
 | Contract | `compare_contracts` | Clause‑level differ with risk flags |
 | Contract | `analyze_clauses` | Rule‑based clause risk analysis |
 | Contract | `extract_clauses` | Template‑filtered clause extraction |
+| Contract | `suggest_clause_alternatives` | Curated alternative phrasings for risky clauses |
+| Document | `analyze_document` | Risk analysis for real `.docx` / `.txt` files |
+| Document | `compare_documents` | Clause‑level diff for real `.docx` / `.txt` files |
+| Document | `export_analysis_report` | Export a formatted `.docx` risk report |
 | Brief | `generate_brief_outline` | Outline from a brief framework by case type |
 | Brief | `create_argument_structure` | IRAC‑style argument scaffold |
 | Brief | `generate_issue_statement` | Issue‑statement framework from facts + law |
@@ -311,9 +316,83 @@ in‑memory FastMCP API. The live integrations are tested with an
   enable them; PACER may incur fees.
 - **Not legal advice.** Output is a scaffold for attorney review.
 
+## 🔒 AI agent privacy considerations
+
+When an AI assistant (Claude, GPT-4, Gemini, etc.) calls this MCP server,
+the **MCP server itself makes no external calls by default** — tool responses
+stay between the server and the client. However, the **AI agent's own
+inference provider** receives your full prompt context, which may include
+excerpts from the documents and queries you pass to these tools.
+
+Legal documents — especially privileged communications, client information,
+and work product — carry confidentiality obligations under ABA Model Rule 1.6
+and equivalent state rules. In *United States v. Heppner* (S.D.N.Y. Feb.
+2026), a court held that consumer AI outputs were **not privileged** because
+the user had no reasonable expectation of confidentiality under the
+provider's standard terms.
+
+### Recommended posture by data sensitivity
+
+| Data class | Recommended AI inference approach |
+| --- | --- |
+| Attorney-client privileged / work product | Self-hosted model (Ollama, vLLM) or Azure OpenAI / Vertex AI with Zero Data Retention + BAA/DPA + regional pinning. Never consumer free-tier APIs. |
+| Confidential but not privileged | Enterprise cloud API with no-training contract and modified abuse monitoring |
+| Public record / non-sensitive research | Standard managed cloud APIs acceptable with standard review |
+
+### Provider notes
+
+**Self-hosted (strongest control)**
+Run an open-weight model (Llama, Mistral, Gemma) locally with
+[Ollama](https://ollama.com) or [vLLM](https://github.com/vllm-project/vllm).
+No data leaves your machine. Ollama binds to loopback by default. Suitable
+for pro se litigants and firms on a budget who need strong confidentiality
+without enterprise cloud contracts.
+
+**Azure OpenAI (Microsoft Foundry)**
+Prompts are not shared with OpenAI or used for training by default. Regional
+and DataZone deployments pin processing geography. For Zero Data Retention,
+apply for Modified Abuse Monitoring via the
+[Limited Access program](https://learn.microsoft.com/en-us/azure/ai-foundry/responsible-ai/openai/limited-access).
+HIPAA BAA available. [Privacy docs](https://learn.microsoft.com/en-us/azure/ai-foundry/responsible-ai/openai/data-privacy).
+
+**Google Vertex AI / Model Garden**
+No-training default under Google's Service Specific Terms. Regional residency
+configurable; use Assured Workloads for US-only boundaries. Avoid Google
+Search grounding (forces 30-day retention). HIPAA BAA available.
+[Data governance docs](https://cloud.google.com/vertex-ai/generative-ai/docs/data-governance).
+You can also deploy open-weight models from Model Garden inside your own GCP
+project so inference runs entirely within your VPC.
+
+**OpenRouter**
+A routing layer — prompts are always forwarded to an upstream inference
+provider. Use [ZDR routing](https://openrouter.ai/docs/guides/features/zdr)
+(`"provider": {"zdr": true}`), `data_collection: "deny"`, and Enterprise EU
+routing if you need in-region processing. Still adds a routing hop compared
+to direct enterprise tenancy; treat as higher risk for privileged content
+without enterprise contractual controls in place.
+
+### Key practices for agents on legal documents
+
+- **Minimize payload** — redact names, SSNs, account numbers before cloud
+  inference where possible
+- **Audit who queries what** — the MCP server's audit log (`utils.audit`)
+  records every tool call; pair this with your inference provider's logging
+- **Counsel-directed workflows** — document that AI-assisted research was
+  directed by an attorney (relevant to privilege analysis post-*Heppner*)
+- **Read the vendor ToS** before routing client matter data — ABA Opinion 512
+  requires it
+- **Separate environments** — never use dev/sandbox API keys (which may lack
+  ZDR) on production matter data
+
+> This server is a research and analysis scaffold. It does not provide legal
+> advice and does not substitute for attorney review. For questions about
+> ethical AI use in legal practice, consult your jurisdiction's bar ethics
+> guidance and [ABA Formal Opinion 512](https://www.americanbar.org/content/dam/aba/administrative/professional_responsibility/ethics%20opinions/aba-formal-opinion-512.pdf) (2024).
+
 ## 📖 Further reading
 
 - [Model Context Protocol](https://modelcontextprotocol.io)
+- [ABA Formal Opinion 512 — Generative AI](https://www.americanbar.org/content/dam/aba/administrative/professional_responsibility/ethics%20opinions/aba-formal-opinion-512.pdf) (2024)
 - [CourtListener API](https://www.courtlistener.com/help/api/rest/) ·
   [RECAP](https://free.law/recap/)
 - [PACER developer resources](https://pacer.uscourts.gov/file-case/developer-resources)

@@ -49,3 +49,73 @@ class TestContractTools:
         )
         assert payload["clause_count"] >= 1
         assert "confidentiality_scope" in payload["clauses"]
+
+
+class TestSuggestClauseAlternatives:
+    @pytest.mark.asyncio
+    async def test_indemnification_returns_alternatives(self, mcp_server):
+        payload = await call_tool_json(
+            mcp_server,
+            "suggest_clause_alternatives",
+            {
+                "clause_text": (
+                    "Recipient shall indemnify without limitation of liability."
+                ),
+                "clause_type": "indemnification",
+            },
+        )
+        assert len(payload["alternatives"]) >= 2
+
+    @pytest.mark.asyncio
+    async def test_each_alternative_has_required_keys(self, mcp_server):
+        payload = await call_tool_json(
+            mcp_server,
+            "suggest_clause_alternatives",
+            {
+                "clause_text": "Uncapped liability clause.",
+                "clause_type": "limitation_of_liability",
+            },
+        )
+        for alternative in payload["alternatives"]:
+            assert "text" in alternative
+            assert "risk_level" in alternative
+            assert "rationale" in alternative
+
+    @pytest.mark.asyncio
+    async def test_limitation_of_liability_alternatives(self, mcp_server):
+        payload = await call_tool_json(
+            mcp_server,
+            "suggest_clause_alternatives",
+            {
+                "clause_text": "Liability is unlimited.",
+                "clause_type": "limitation_of_liability",
+            },
+        )
+        assert payload["alternatives"]
+        assert payload["clause_type"] == "limitation_of_liability"
+
+    @pytest.mark.asyncio
+    async def test_unknown_clause_type_returns_fallback(self, mcp_server):
+        payload = await call_tool_json(
+            mcp_server,
+            "suggest_clause_alternatives",
+            {
+                "clause_text": "Some unusual clause.",
+                "clause_type": "unknown",
+            },
+        )
+        assert payload["alternatives"]
+        assert len(payload["alternatives"]) >= 1
+
+    @pytest.mark.asyncio
+    async def test_disclaimer_present_in_all_responses(self, mcp_server):
+        payload = await call_tool_json(
+            mcp_server,
+            "suggest_clause_alternatives",
+            {
+                "clause_text": "Indemnify forever.",
+                "clause_type": "indemnification",
+            },
+        )
+        assert "not legal advice" in payload["notice"].lower()
+        assert "not legal advice" in payload["disclaimer"].lower()

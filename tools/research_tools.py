@@ -9,8 +9,9 @@ cost warnings documented in the README.
 from __future__ import annotations
 
 import json
-from typing import Optional
+from typing import Any, Dict, List, Optional
 
+from integrations import CourtListenerClient, get_integration_settings
 from utils import audit, get_data_manager
 
 FEE_NOTICE = (
@@ -19,6 +20,30 @@ FEE_NOTICE = (
     "flags and query them with the 'search_live_case_law' tool. Check "
     "'integration_status' first. PACER usage may incur fees."
 )
+
+
+def _case_result_key(result: Dict[str, Any]) -> Optional[str]:
+    for key in ("citation", "caseName", "name", "id"):
+        value = result.get(key)
+        if value:
+            return str(value).strip().lower()
+    return None
+
+
+def _merge_case_results(
+    local_results: List[Dict[str, Any]],
+    live_results: List[Dict[str, Any]],
+) -> List[Dict[str, Any]]:
+    merged: List[Dict[str, Any]] = []
+    seen: set[str] = set()
+    for result in local_results + live_results:
+        dedupe_key = _case_result_key(result)
+        if dedupe_key and dedupe_key in seen:
+            continue
+        if dedupe_key:
+            seen.add(dedupe_key)
+        merged.append(result)
+    return merged
 
 
 def register_research_tools(mcp) -> None:
@@ -109,5 +134,94 @@ def register_research_tools(mcp) -> None:
                 for c in matches
             ],
             "notice": FEE_NOTICE,
+        }
+        return json.dumps(result, indent=2)
+
+    @mcp.tool()
+    def research_legal_issue(
+        issue: str,
+        jurisdiction: Optional[str] = None,
+        include_statutes: bool = True,
+    ) -> str:
+        """Aggregate local case search, CourtListener (if enabled), and statutes.
+
+        Returns a single research response with source attribution and
+        deduplicated case results.
+        """
+        audit(
+            "research_legal_issue",
+            issue=issue,
+            jurisdiction=jurisdiction,
+            include_statutes=include_statutes,
+        )
+
+        local_cases = data.search_cases(issue, jurisdiction)
+        local_case_results = [
+            {
+                "source": "local",
+                "id": case["id"],
+                "name": case["name"],
+                "citation": case["citation"],
+                "court": case["court"],
+                "year": case["year"],
+                "holding": case["holding"],
+                "summary": case.get("summary"),
+                "relevance_score": case["relevance_score"],
+            }
+            for case in local_cases
+        ]
+
+        live_case_results: List[Dict[str, Any]] = []
+        live_status: Optional[Dict[str, Any]] = None
+        settings = get_integration_settings()
+        courtlistener = CourtListenerClient(settings.courtlistener)
+        live_payload = courtlistener.search(issue)
+        live_status = {
+            "enabled": live_payload.get("enabled"),
+            "configured": live_payload.get("configured"),
+            "message": live_payload.get("message"),
+        }
+        for item in live_payload.get("results", []):
+            live_case_results.append(
+                {
+                    "source": "courtlistener",
+                    "name": item.get("caseName") or item.get("case_name"),
+                    "citation": item.get("citation") or item.get("citeCount"),
+                    "court": item.get("court"),
+                    "year": item.get("dateFiled") or item.get("year"),
+                    "holding": item.get("snippet") or item.get("text"),
+                    "summary": item.get("snippet"),
+                    "relevance_score": item.get("score"),
+                }
+            )
+
+        merged_cases = _merge_case_results(local_case_results, live_case_results)
+
+        statutes: List[Dict[str, Any]] = []
+        if include_statutes:
+            statutes = [
+                {
+                    "source": "local",
+                    "id": statute["id"],
+                    "title": statute["title"],
+                    "citation": statute["citation"],
+                    "jurisdiction": statute["jurisdiction"],
+                    "text": statute["text"],
+                    "relevance_score": statute["relevance_score"],
+                }
+                for statute in data.search_statutes(issue, jurisdiction)
+            ]
+
+        result = {
+            "issue": issue,
+            "jurisdiction": jurisdiction,
+            "case_result_count": len(merged_cases),
+            "cases": merged_cases,
+            "statutes": statutes if include_statutes else None,
+            "courtlistener_status": live_status,
+            "notice": (
+                "Aggregated research scaffold for attorney review only. "
+                "Not legal advice."
+            ),
         }
         return json.dumps(result, indent=2)

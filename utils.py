@@ -127,6 +127,32 @@ class LegalDataManager:
     def get_statute(self, statute_id: str) -> Optional[Dict[str, Any]]:
         return self.statutes.get(statute_id)
 
+    def search_statutes(
+        self, query: str, jurisdiction: Optional[str] = None
+    ) -> List[Dict[str, Any]]:
+        """Return statutes ranked by keyword relevance to ``query``."""
+
+        terms = [term for term in re.split(r"\W+", query.lower()) if term]
+        results: List[Dict[str, Any]] = []
+        for statute in self.statutes.values():
+            if jurisdiction and statute.get("jurisdiction") != jurisdiction:
+                continue
+            haystack = " ".join(
+                [
+                    statute.get("title", ""),
+                    statute.get("text", ""),
+                    statute.get("citation", ""),
+                    " ".join(statute.get("topics", [])),
+                ]
+            ).lower()
+            score = sum(haystack.count(term) for term in terms)
+            if score > 0 or not terms:
+                enriched = dict(statute)
+                enriched["relevance_score"] = score
+                results.append(enriched)
+        results.sort(key=lambda item: item["relevance_score"], reverse=True)
+        return results
+
     # -- contract accessors -----------------------------------------------
     def get_contract(self, contract_id: str) -> Optional[Dict[str, Any]]:
         contract = self.contracts.get(contract_id)

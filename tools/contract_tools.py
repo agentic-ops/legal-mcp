@@ -9,33 +9,145 @@ so their output can be audited and reviewed by an attorney.
 from __future__ import annotations
 
 import json
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 
+from tools.risk_helpers import assess_clause_risk
 from utils import audit, get_data_manager
 
-# Transparent, keyword-based risk heuristics. Each entry maps a lowercase
-# trigger phrase to a (risk_level, human-readable rationale) pair.
-RISK_RULES: List[Tuple[str, str, str]] = [
-    ("without limitation", "HIGH", "Potentially uncapped/unlimited liability."),
-    ("indemnif", "MEDIUM", "Indemnification obligation present."),
-    ("in perpetuity", "MEDIUM", "Perpetual obligation with no time limit."),
-    ("perpetual", "MEDIUM", "Perpetual obligation with no time limit."),
-    ("specifically marked", "MEDIUM", "Confidentiality narrowed to marked items."),
-    ("sole discretion", "MEDIUM", "One-sided discretionary control."),
+CLAUSE_ALTERNATIVES: Dict[str, List[Dict[str, str]]] = {
+    "indemnification": [
+        {
+            "text": (
+                "Each party shall indemnify the other only for third-party claims "
+                "arising from its own negligence or willful misconduct, subject to "
+                "a mutual cap equal to the fees paid under this Agreement in the "
+                "twelve (12) months preceding the claim."
+            ),
+            "risk_level": "MEDIUM",
+            "rationale": "Mutual, capped indemnity with a negligence carve-out.",
+        },
+        {
+            "text": (
+                "Indemnifying party's liability shall exclude indirect, incidental, "
+                "or consequential damages and shall not exceed the greater of fees "
+                "paid in the prior twelve months or $100,000."
+            ),
+            "risk_level": "MEDIUM",
+            "rationale": "Caps exposure and excludes consequential damages.",
+        },
+        {
+            "text": (
+                "Each party shall defend and indemnify the other at its own expense "
+                "for claims directly caused by that party's breach of confidentiality "
+                "obligations, with reasonable cooperation requirements."
+            ),
+            "risk_level": "LOW",
+            "rationale": "Narrow indemnity limited to confidentiality breaches.",
+        },
+    ],
+    "limitation_of_liability": [
+        {
+            "text": (
+                "Except for breaches of confidentiality or indemnification "
+                "obligations, each party's aggregate liability shall not exceed "
+                "the fees paid in the twelve (12) months preceding the claim."
+            ),
+            "risk_level": "LOW",
+            "rationale": "Mutual cap with explicit carve-outs for key obligations.",
+        },
+        {
+            "text": (
+                "Neither party shall be liable for indirect, incidental, special, "
+                "or consequential damages. Direct damages are capped at twice the "
+                "fees paid in the prior twelve months."
+            ),
+            "risk_level": "LOW",
+            "rationale": "Tiered liability with consequential damages excluded.",
+        },
+    ],
+    "ip_assignment": [
+        {
+            "text": (
+                "Work product created under this Agreement shall be deemed work "
+                "made for hire; to the extent it is not, Provider assigns all "
+                "right, title, and interest to Client, while retaining a "
+                "non-exclusive license to use generalized know-how."
+            ),
+            "risk_level": "MEDIUM",
+            "rationale": "Assigns IP while preserving a limited license-back.",
+        },
+        {
+            "text": (
+                "Provider grants Client an exclusive license to deliverables within "
+                "the defined field of use; Provider retains ownership of pre-existing "
+                "materials and background IP."
+            ),
+            "risk_level": "LOW",
+            "rationale": "Field-of-use license instead of broad assignment.",
+        },
+    ],
+    "non_compete": [
+        {
+            "text": (
+                "During the term and for twelve (12) months thereafter, Recipient "
+                "shall not solicit Client's employees within the geographic markets "
+                "where services were performed."
+            ),
+            "risk_level": "MEDIUM",
+            "rationale": "Temporal and geographic narrowing of restriction.",
+        },
+        {
+            "text": (
+                "Non-compete obligations apply only to direct competition with "
+                "Client's core product line and only in jurisdictions where "
+                "Recipient performed services."
+            ),
+            "risk_level": "LOW",
+            "rationale": "Scope limited to direct competition and service regions.",
+        },
+    ],
+    "governing_law": [
+        {
+            "text": (
+                "This Agreement shall be governed by the laws of the State of "
+                "Delaware, without regard to conflict-of-law principles."
+            ),
+            "risk_level": "LOW",
+            "rationale": "Neutral, widely used commercial jurisdiction.",
+        },
+        {
+            "text": (
+                "This Agreement shall be governed by the laws of the State where "
+                "the principal place of business of the performing party is located."
+            ),
+            "risk_level": "LOW",
+            "rationale": "Ties governing law to the performing party's home state.",
+        },
+    ],
+}
+
+FALLBACK_ALTERNATIVES: List[Dict[str, str]] = [
+    {
+        "text": (
+            "Revise the clause to include mutual obligations, explicit caps, and "
+            "carve-outs for gross negligence or willful misconduct."
+        ),
+        "risk_level": "MEDIUM",
+        "rationale": "Generic balancing language when clause type is unknown.",
+    },
+    {
+        "text": (
+            "Add a reasonableness standard and require written notice before "
+            "enforcement of discretionary rights."
+        ),
+        "risk_level": "LOW",
+        "rationale": "Reduces one-sided discretionary control.",
+    },
 ]
 
-
-def _assess_clause_risk(text: str) -> Dict[str, Any]:
-    lowered = text.lower()
-    flags: List[Dict[str, str]] = []
-    highest = "LOW"
-    order = {"LOW": 0, "MEDIUM": 1, "HIGH": 2}
-    for trigger, level, rationale in RISK_RULES:
-        if trigger in lowered:
-            flags.append({"level": level, "rationale": rationale, "trigger": trigger})
-            if order[level] > order[highest]:
-                highest = level
-    return {"risk_level": highest, "flags": flags}
+DISCLAIMER = (
+    "AI-generated suggestions for attorney review only. Not legal advice."
+)
 
 
 def register_contract_tools(mcp) -> None:
@@ -72,14 +184,14 @@ def register_contract_tools(mcp) -> None:
                 risk = "LOW"
             elif text_a is None:
                 status = "only_in_b"
-                risk = _assess_clause_risk(text_b or "")["risk_level"]
+                risk = assess_clause_risk(text_b or "")["risk_level"]
             elif text_b is None:
                 status = "only_in_a"
-                risk = _assess_clause_risk(text_a or "")["risk_level"]
+                risk = assess_clause_risk(text_a or "")["risk_level"]
             else:
                 status = "modified"
-                risk_a = _assess_clause_risk(text_a)["risk_level"]
-                risk_b = _assess_clause_risk(text_b)["risk_level"]
+                risk_a = assess_clause_risk(text_a)["risk_level"]
+                risk_b = assess_clause_risk(text_b)["risk_level"]
                 order = {"LOW": 0, "MEDIUM": 1, "HIGH": 2}
                 risk = risk_a if order[risk_a] >= order[risk_b] else risk_b
                 if risk == "LOW":
@@ -121,7 +233,7 @@ def register_contract_tools(mcp) -> None:
             else clauses
         )
         analysis = {
-            name: {"text": text, **_assess_clause_risk(text)}
+            name: {"text": text, **assess_clause_risk(text)}
             for name, text in selected.items()
         }
         order = {"LOW": 0, "MEDIUM": 1, "HIGH": 2}
@@ -156,5 +268,25 @@ def register_contract_tools(mcp) -> None:
             "type": contract.get("type"),
             "clause_count": len(clauses),
             "clauses": clauses,
+        }
+        return json.dumps(result, indent=2)
+
+    @mcp.tool()
+    def suggest_clause_alternatives(clause_text: str, clause_type: str) -> str:
+        """Given risky clause text, return alternative phrasings with risk rationale.
+
+        AI-generated suggestions for attorney review only. Not legal advice.
+        """
+        audit("suggest_clause_alternatives", clause_type=clause_type)
+        normalized = clause_type.strip().lower().replace("-", "_").replace(" ", "_")
+        alternatives = CLAUSE_ALTERNATIVES.get(normalized, FALLBACK_ALTERNATIVES)
+        current_risk = assess_clause_risk(clause_text)
+        result = {
+            "clause_type": clause_type,
+            "input_clause": clause_text,
+            "current_risk": current_risk,
+            "alternatives": alternatives,
+            "disclaimer": DISCLAIMER,
+            "notice": "not legal advice",
         }
         return json.dumps(result, indent=2)

@@ -46,3 +46,141 @@ class TestResearchTools:
             mcp_server, "extract_statute", {"statute_id": "does.not.exist"}
         )
         assert "error" in payload
+
+
+class TestResearchLegalIssue:
+    @pytest.mark.asyncio
+    async def test_returns_local_results_when_cl_disabled(self, mcp_server):
+        payload = await call_tool_json(
+            mcp_server,
+            "research_legal_issue",
+            {
+                "issue": "contract breach delivery timing",
+                "jurisdiction": "CA",
+            },
+        )
+        assert payload["case_result_count"] >= 1
+        assert payload["cases"][0]["source"] == "local"
+        assert payload["courtlistener_status"]["enabled"] is False
+
+    @pytest.mark.asyncio
+    async def test_includes_statutes_when_flag_true(self, mcp_server):
+        payload = await call_tool_json(
+            mcp_server,
+            "research_legal_issue",
+            {
+                "issue": "reasonable time contract performance",
+                "jurisdiction": "CA",
+                "include_statutes": True,
+            },
+        )
+        assert payload["statutes"] is not None
+        assert len(payload["statutes"]) >= 1
+
+    @pytest.mark.asyncio
+    async def test_excludes_statutes_when_flag_false(self, mcp_server):
+        payload = await call_tool_json(
+            mcp_server,
+            "research_legal_issue",
+            {
+                "issue": "reasonable time contract performance",
+                "include_statutes": False,
+            },
+        )
+        assert payload["statutes"] is None
+
+    @pytest.mark.asyncio
+    async def test_cl_results_merged_when_mock_enabled(self, mcp_server, monkeypatch):
+        import httpx
+
+        from integrations.config import CourtListenerSettings
+        from integrations.courtlistener import CourtListenerClient
+
+        def handler(request: httpx.Request) -> httpx.Response:
+            return httpx.Response(
+                200,
+                json={
+                    "count": 1,
+                    "results": [
+                        {
+                            "caseName": "Mock v. Example",
+                            "citation": "999 F.3d 111",
+                        }
+                    ],
+                },
+            )
+
+        transport = httpx.MockTransport(handler)
+        http_client = httpx.Client(transport=transport)
+        settings = CourtListenerSettings(enabled=True, api_token="secret-token")
+
+        def mock_client(*args, **kwargs):
+            return CourtListenerClient(settings, http_client=http_client)
+
+        monkeypatch.setattr(
+            "tools.research_tools.CourtListenerClient",
+            mock_client,
+        )
+        payload = await call_tool_json(
+            mcp_server,
+            "research_legal_issue",
+            {"issue": "contract breach"},
+        )
+        sources = {case["source"] for case in payload["cases"]}
+        assert "courtlistener" in sources
+
+    @pytest.mark.asyncio
+    async def test_results_annotated_with_source(self, mcp_server):
+        payload = await call_tool_json(
+            mcp_server,
+            "research_legal_issue",
+            {"issue": "material breach"},
+        )
+        assert all("source" in case for case in payload["cases"])
+
+    @pytest.mark.asyncio
+    async def test_no_duplicates_across_sources(self, mcp_server, monkeypatch):
+        import httpx
+
+        from integrations.config import CourtListenerSettings
+        from integrations.courtlistener import CourtListenerClient
+
+        def handler(request: httpx.Request) -> httpx.Response:
+            return httpx.Response(
+                200,
+                json={
+                    "count": 1,
+                    "results": [
+                        {
+                            "caseName": "Smith v. ABC Corp",
+                            "citation": "2022 Cal.App.4th 1234",
+                        }
+                    ],
+                },
+            )
+
+        transport = httpx.MockTransport(handler)
+        http_client = httpx.Client(transport=transport)
+        settings = CourtListenerSettings(enabled=True, api_token="secret-token")
+
+        def mock_client(*args, **kwargs):
+            return CourtListenerClient(settings, http_client=http_client)
+
+        monkeypatch.setattr(
+            "tools.research_tools.CourtListenerClient",
+            mock_client,
+        )
+        payload = await call_tool_json(
+            mcp_server,
+            "research_legal_issue",
+            {
+                "issue": "contract breach delivery timing",
+                "jurisdiction": "CA",
+            },
+        )
+        citations = [
+            case.get("citation")
+            for case in payload["cases"]
+            if case.get("citation") == "2022 Cal.App.4th 1234"
+        ]
+        assert len(citations) == 1
