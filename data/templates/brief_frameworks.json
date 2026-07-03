@@ -1,0 +1,47 @@
+{
+  "summary_judgment": {
+    "id": "summary_judgment",
+    "title": "Motion for Summary Judgment",
+    "applicable_case_types": ["contract_breach", "commercial_contracts", "civil"],
+    "sections": [
+      {
+        "heading": "I. STATEMENT OF UNDISPUTED FACTS",
+        "subsections": ["Contract Formation", "Delivery Terms", "Breach Occurrence"]
+      },
+      {
+        "heading": "II. LEGAL STANDARD FOR SUMMARY JUDGMENT",
+        "subsections": ["Standard of Review", "Contract Breach Elements"]
+      },
+      {
+        "heading": "III. ARGUMENT",
+        "subsections": [
+          "Valid Contract Exists",
+          "Plaintiff Performed All Obligations",
+          "Defendant Materially Breached Contract",
+          "Damages Are Calculable and Certain"
+        ]
+      },
+      {
+        "heading": "IV. SUPPORTING AUTHORITIES",
+        "subsections": ["Primary Cases", "Statutory Authority"]
+      },
+      {
+        "heading": "V. CONCLUSION",
+        "subsections": []
+      }
+    ]
+  },
+  "appellate_brief": {
+    "id": "appellate_brief",
+    "title": "Appellant's Opening Brief",
+    "applicable_case_types": ["appeal", "civil", "contract_breach"],
+    "sections": [
+      {"heading": "I. STATEMENT OF THE ISSUES", "subsections": []},
+      {"heading": "II. STATEMENT OF THE CASE", "subsections": ["Procedural History", "Statement of Facts"]},
+      {"heading": "III. STANDARD OF REVIEW", "subsections": []},
+      {"heading": "IV. SUMMARY OF ARGUMENT", "subsections": []},
+      {"heading": "V. ARGUMENT", "subsections": ["First Assignment of Error", "Second Assignment of Error"]},
+      {"heading": "VI. CONCLUSION", "subsections": []}
+    ]
+  }
+}

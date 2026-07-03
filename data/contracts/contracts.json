@@ -1,0 +1,40 @@
+{
+  "standard_nda_template": {
+    "id": "standard_nda_template",
+    "title": "Standard Mutual Non-Disclosure Agreement",
+    "type": "NDA",
+    "aliases": ["NDA_v1"],
+    "clauses": {
+      "confidentiality_scope": "Recipient shall hold in strict confidence all proprietary information disclosed by the Disclosing Party, including all technical, business, and financial information, whether or not marked confidential.",
+      "term_duration": "The obligations of confidentiality shall survive for five (5) years following termination of this Agreement.",
+      "return_of_materials": "Upon termination, Recipient shall return or destroy all Confidential Materials within thirty (30) days.",
+      "governing_law": "This Agreement shall be governed by the laws of the State of California.",
+      "remedies": "The Disclosing Party shall be entitled to seek injunctive relief in addition to any other remedies available at law or in equity."
+    }
+  },
+  "client_proposed_nda": {
+    "id": "client_proposed_nda",
+    "title": "Client Proposed Non-Disclosure Agreement",
+    "type": "NDA",
+    "aliases": ["NDA_v2"],
+    "clauses": {
+      "confidentiality_scope": "Recipient shall hold in confidence only information that is specifically marked 'Confidential' at the time of disclosure.",
+      "term_duration": "The obligations of confidentiality shall survive for three (3) years following termination of this Agreement.",
+      "return_of_materials": "Upon termination, Recipient shall return or destroy all Confidential Materials within sixty (60) days.",
+      "governing_law": "This Agreement shall be governed by the laws of the State of California.",
+      "indemnification": "Recipient shall indemnify and hold harmless the Disclosing Party against any and all losses arising from unauthorized disclosure, without limitation of liability."
+    }
+  },
+  "master_services_agreement": {
+    "id": "master_services_agreement",
+    "title": "Master Services Agreement (Template)",
+    "type": "MSA",
+    "aliases": [],
+    "clauses": {
+      "scope_of_services": "Provider shall perform the services described in one or more mutually executed Statements of Work.",
+      "term_duration": "This Agreement shall remain in effect for an initial term of one (1) year and shall renew automatically for successive one-year terms unless terminated.",
+      "limitation_of_liability": "Except for breaches of confidentiality, each party's aggregate liability shall not exceed the fees paid in the twelve (12) months preceding the claim.",
+      "governing_law": "This Agreement shall be governed by the laws of the State of Delaware."
+    }
+  }
+}

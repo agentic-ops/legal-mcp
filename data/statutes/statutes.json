@@ -1,0 +1,24 @@
+{
+  "Cal.Civ.Code.1657": {
+    "id": "Cal.Civ.Code.1657",
+    "title": "Reasonable Time",
+    "jurisdiction": "CA",
+    "citation": "Cal. Civ. Code \u00a7 1657",
+    "text": "Where no time is specified for the performance of an act required to be performed, a reasonable time is allowed. If the act is in its nature capable of being done instantly, it must be performed immediately, or at least within such time as may be necessary for the performance of the act.",
+    "enacted": "1872",
+    "last_amended": "1983",
+    "history": "Enacted in 1872 as part of the original California Civil Code; amended in 1983 for a minor language clarification. Codifies the common-law reasonable-time principle for contract performance.",
+    "topics": ["reasonable time", "contract performance", "default timing"]
+  },
+  "Cal.Com.Code.2106": {
+    "id": "Cal.Com.Code.2106",
+    "title": "Definitions: 'Contract for Sale'; 'Sale'; 'Present Sale'; 'Conforming to Contract'; 'Termination'; 'Cancellation'",
+    "jurisdiction": "CA",
+    "citation": "Cal. Com. Code \u00a7 2106",
+    "text": "In this division unless the context otherwise requires 'contract' and 'agreement' are limited to those relating to the present or future sale of goods. Goods or conduct including any part of a performance are 'conforming' or conform to the contract when they are in accordance with the obligations under the contract.",
+    "enacted": "1963",
+    "last_amended": "2006",
+    "history": "Part of California's adoption of the Uniform Commercial Code, Division 2 (Sales).",
+    "topics": ["sale of goods", "conforming performance", "UCC"]
+  }
+}

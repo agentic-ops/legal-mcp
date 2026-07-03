@@ -1,0 +1,38 @@
+[project]
+name = "legal-mcp"
+version = "1.0.0"
+description = "Legal Research & Paralegal MCP Server - structured legal workflow tools over the Model Context Protocol."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+dependencies = [
+    "mcp[cli]>=1.28.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=9.0",
+    "pytest-asyncio>=1.0",
+    "pytest-cov>=7.0",
+    "black>=26.0",
+    "flake8>=7.0",
+    "mypy>=2.0",
+    "httpx>=0.28",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+addopts = "-ra"
+
+[tool.black]
+line-length = 88
+target-version = ["py310", "py311", "py312"]
+
+[tool.mypy]
+python_version = "3.12"
+ignore_missing_imports = true
+warn_unused_ignores = false
+disable_error_code = ["misc"]
+exclude = ["tests/"]
