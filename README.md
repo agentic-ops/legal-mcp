@@ -446,7 +446,7 @@ without enterprise contractual controls in place.
 > This server is a research and analysis scaffold. It does not provide legal
 > advice and does not substitute for attorney review. For questions about
 > ethical AI use in legal practice, consult your jurisdiction's bar ethics
-> guidance and [ABA Formal Opinion 512](https://www.americanbar.org/content/dam/aba/administrative/professional_responsibility/ethics%20opinions/aba-formal-opinion-512.pdf) (2024).
+> guidance and [ABA Formal Opinion 512 (PDF)](https://www.americanbar.org/content/dam/aba/administrative/professional_responsibility/ethics-opinions/aba-formal-opinion-512.pdf) (2024).
 
 ## 📖 Further reading
 
