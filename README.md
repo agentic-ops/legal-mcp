@@ -21,6 +21,7 @@ inspectable, deterministic local data and optional (opt‑in) live legal databas
 - [Capabilities](#-capabilities)
 - [Live integrations (PACER & CourtListener/RECAP)](#-live-integrations-pacer--courtlistenerrecap)
 - [Docker (optional)](#-docker-optional)
+- [Use as an Agent Skill (Claude, Cursor, Codex, and more)](#-use-as-an-agent-skill-claude-cursor-codex-and-more)
 - [Forking & building your own](#-forking--building-your-own-llm-friendly)
 - [Architecture](#-architecture)
 - [Testing, linting & types](#-testing-linting--types)
@@ -287,6 +288,42 @@ docker run --rm -p 8000:8000 \
   -e COURTLISTENER_ENABLED=true -e COURTLISTENER_API_TOKEN=... \
   legal-mcp
 ```
+
+---
+
+## 🧩 Use as an Agent Skill (Claude, Cursor, Codex, and more)
+
+MCP and [Agent Skills](https://agentskills.io) are complementary, not
+competing: **MCP is the execution layer** (the 27 tools this server exposes),
+while a **Skill is the methodology layer** — a portable `SKILL.md` file that
+teaches an agent *which* tools to chain, *in what order*, and *what to
+surface to the user* for a given task. Connecting the MCP server alone gives
+an agent tools without a playbook; the skill is the playbook. Agent Skills
+are an open, vendor‑neutral standard — the same `SKILL.md` works unchanged
+across Claude Code, Cursor, Codex CLI, Gemini CLI, and other compliant
+agents.
+
+This repo ships one at
+[`.agents/skills/legal-mcp-toolkit/SKILL.md`](.agents/skills/legal-mcp-toolkit/SKILL.md) —
+the emerging cross‑agent convention for project‑level skills (recognized
+natively by Cursor, Codex CLI, and Gemini CLI; Claude Code can load it via
+its skills installer, or you can symlink/copy it into `.claude/skills/`). It
+encodes eight workflow patterns (contract risk triage, negotiation prep,
+metadata lookup, privilege-safe AI review, legal research, brief drafting,
+citation cleanup, and batch analysis) as tool-call sequences, so an agent
+with this server connected knows how to combine tools instead of guessing.
+
+**To use it:**
+
+- **Automatically**, if you clone or fork this repo — compliant agents
+  discover project skills under `.agents/skills/` (or their own
+  vendor‑specific path) for anyone working in the repository.
+- **In another project**, copy the `legal-mcp-toolkit/` directory into that
+  project's `.agents/skills/` (or your personal `~/.agents/skills/`)
+  alongside connecting this MCP server, so the guidance travels with you.
+
+See the [Agent Skills specification](https://agentskills.io/specification.md)
+for the full open standard this skill follows.
 
 ---
 
