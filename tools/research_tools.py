@@ -11,7 +11,10 @@ def register_research_tools(mcp):
     
     @mcp.tool()
     def search_precedents(query: str, jurisdiction: str = None) -> str:
-        """Search for legal precedents based on query and jurisdiction"""
+        """Search for legal precedents based on query and jurisdiction.
+
+        May incur third-party database fees (e.g., PACER); see README.
+        """
         # TODO: Implement precedent search functionality
         pass
     
@@ -23,6 +26,9 @@ def register_research_tools(mcp):
     
     @mcp.tool()
     def search_case_law(query: str, jurisdiction: str = None) -> str:
-        """Search case law with relevance ranking"""
+        """Search case law with relevance ranking.
+
+        May incur third-party database fees (e.g., PACER); see README.
+        """
         # TODO: Implement case law search functionality
         pass

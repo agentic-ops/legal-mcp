@@ -2,6 +2,33 @@
 
 A specialized Model Context Protocol (MCP) server for structured legal workflows. This server provides tools, resources, and prompts for precedent retrieval, statute analysis, citation validation, contract analysis, and guided brief scaffolding. **Status: Experimental - Iterating with partner cohort.**
 
+## ⚠️ PACER and Paid Database Fees
+
+**If you connect this MCP (or an AI assistant using it) to PACER or other paid legal databases, you are responsible for all charges incurred on your account.**
+
+PACER and similar services bill per page, per document, or per search. AI agents can issue many requests in minutes. In real-world testing, a short (~10 minute) agent session nearly exhausted a standard PACER account's **$30 per quarter** fee waiver.
+
+**Who is most at risk**
+- **Pro se litigants** and individual users on standard PACER accounts without institutional billing
+- Anyone who does **not** actively monitor PACER usage and billing alerts
+- Users expecting "free" research — PACER is not free beyond the quarterly waiver threshold
+
+**Who may have safer arrangements**
+- Law firms with firm-wide PACER billing and internal monitoring
+- Academic/research accounts with different fee structures (verify with your institution)
+
+**This MCP does not**
+- Enforce spending limits or rate caps on external databases
+- Monitor your PACER balance or stop requests when a quota is reached
+- Provide legal advice or substitute for attorney review
+
+**Recommended practice**
+- Monitor your PACER account dashboard before and after agent sessions
+- Start with narrow, specific queries; avoid open-ended "research everything" prompts
+- Prefer free sources when available — **CourtListener / RECAP** integration is planned as a primary search path to reduce reliance on paid PACER pulls (not yet available in v0.1)
+
+For official PACER billing rules, see [pacer.gov](https://pacer.gov).
+
 ## 🏗️ Architecture
 
 The server is built with a schema-first, inspectable architecture for legal workflow augmentation:
@@ -428,6 +455,7 @@ The test suite will validate:
 - 🔄 Citation parser core utilities
 
 ### Phase 2: Research Capabilities (Q1 2025 - Planned)
+- 📋 CourtListener/RECAP adapter as preferred free research source (PACER opt-in only)
 - 📋 Multi-source precedent retrieval adapters
 - 📋 Statute excerpt extraction and context
 - 📋 Citation validation and normalization
@@ -471,6 +499,7 @@ This MCP server is designed with legal workflow compliance in mind:
 - **Schema-First Design**: Predictable, inspectable outputs for legal review
 - **No Hidden Operations**: Deterministic reasoning frames, no undisclosed network calls
 - **Selective Disclosure**: Sensitive implementations kept confidential during development
+- **Third-Party Database Costs**: Research tools may integrate with fee-based services (e.g., PACER). Users must understand their account type, quarterly limits, and billing before enabling automated or agent-driven research.
 
 **Important**: This server provides legal workflow augmentation tools. It does not provide legal advice and does not replace attorney review and judgment.
 

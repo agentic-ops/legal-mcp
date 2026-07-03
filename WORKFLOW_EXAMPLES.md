@@ -116,6 +116,8 @@ to identify differences and assess potential risks."
 
 ## 🔍 Legal Research Workflow
 
+> **⚠️ Cost warning:** The Legal Research workflow may query paid databases such as PACER. AI-driven research can consume a standard account's $30/quarter PACER waiver in minutes. Pro se litigants and individual users should monitor account usage closely. Prefer free sources (CourtListener/RECAP, when integrated) where possible.
+
 ### **Scenario**: Associate needs to find precedents for a contract breach case in California
 
 #### **Step 1: User Request**
