@@ -451,7 +451,7 @@ without enterprise contractual controls in place.
 ## 📖 Further reading
 
 - [Model Context Protocol](https://modelcontextprotocol.io)
-- [ABA Formal Opinion 512 — Generative AI](https://www.americanbar.org/content/dam/aba/administrative/professional_responsibility/ethics%20opinions/aba-formal-opinion-512.pdf) (2024)
+- [ABA Formal Opinion 512 — Generative AI (PDF)](https://www.americanbar.org/content/dam/aba/administrative/professional_responsibility/ethics-opinions/aba-formal-opinion-512.pdf) (2024)
 - [CourtListener API](https://www.courtlistener.com/help/api/rest/) ·
   [RECAP](https://free.law/recap/)
 - [PACER developer resources](https://pacer.uscourts.gov/file-case/developer-resources)
