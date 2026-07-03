@@ -4,11 +4,11 @@ description: >-
   Teaches an agent the methodology for chaining the Legal MCP Server's 27
   tools into complete legal workflows — contract risk triage, negotiation
   prep, privilege-safe AI review, legal research, brief drafting, citation
-  cleanup, and batch document analysis. Use whenever the Legal MCP Server is
-  connected and the user asks to review or compare a contract, negotiate
-  terms, research case law or statutes, draft a brief or motion, validate
-  citations, check whether a document is safe to send through an AI
-  provider, or process a batch of documents.
+  cleanup, deep clause analysis, and batch document analysis. Use whenever the
+  Legal MCP Server is connected and the user asks to review or compare a
+  contract, negotiate terms, research case law or statutes, draft a brief or
+  motion, validate citations, check whether a document is safe to send through
+  an AI provider, run deep clause reasoning, or process a batch of documents.
 compatibility: Requires the Legal MCP Server (this repository) connected as an MCP server.
 ---
 
@@ -41,6 +41,9 @@ attorney judgment; every workflow ends with a disclaimer, not a conclusion.
    litigation strategy) and the user plans to paste it into a general AI
    chatbot, run `check_privilege_risk` first and surface the result before
    proceeding.
+6. **Respect feature flags.** Categories can be disabled via `LEGAL_MCP_ENABLE_*`
+   env vars. If a tool is missing, read `legal://server-config` before
+   assuming the server is broken.
 
 ## Tool quick reference
 
@@ -48,7 +51,7 @@ attorney judgment; every workflow ends with a disclaimer, not a conclusion.
 | --- | --- |
 | Research | `search_precedents`, `search_case_law`, `extract_statute`, `research_legal_issue` |
 | Citation | `validate_citation`, `normalize_citation`, `verify_citation_integrity` |
-| Contract | `compare_contracts`, `analyze_clauses`, `extract_clauses`, `suggest_clause_alternatives`, `generate_negotiation_guide` |
+| Contract | `compare_contracts`, `analyze_clauses`, `extract_clauses`, `suggest_clause_alternatives`, `generate_negotiation_guide`, `deep_analyze_clause` |
 | Document | `analyze_document`, `compare_documents`, `export_analysis_report`, `extract_contract_metadata` |
 | Privilege | `check_privilege_risk` |
 | Brief | `generate_brief_outline`, `create_argument_structure`, `generate_issue_statement` |
@@ -70,7 +73,8 @@ contract risk triage).
 1. Real file → `analyze_document(file_path)`. Seed template → `analyze_clauses(contract_id)`.
 2. Two versions to diff → `compare_documents` (files) or `compare_contracts` (template IDs).
 3. Risky clause needs rewording → `suggest_clause_alternatives(clause_text, clause_type)`.
-4. Deliverable needed → `export_analysis_report(analysis_json, output_path)`.
+4. Deeper reasoning needed → `deep_analyze_clause(clause_text, clause_type)` (uses MCP sampling when the client supports it; otherwise returns heuristics only).
+5. Deliverable needed → `export_analysis_report(analysis_json, output_path)`.
 
 ### 2. Negotiation prep
 **Trigger:** "we're the buyer/seller, what should we push back on", "negotiation guide"

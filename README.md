@@ -19,6 +19,7 @@ inspectable, deterministic local data and optional (opt‑in) live legal databas
 - [PACER and paid‑database fees (read first)](#-pacer-and-paid-database-fees-read-first)
 - [Quick start](#-quick-start)
 - [Capabilities](#-capabilities)
+- [Feature flags (tool categories)](#-feature-flags-tool-categories)
 - [Live integrations (PACER & CourtListener/RECAP)](#-live-integrations-pacer--courtlistenerrecap)
 - [Docker (optional)](#-docker-optional)
 - [Use as an Agent Skill (Claude, Cursor, Codex, and more)](#-use-as-an-agent-skill-claude-cursor-codex-and-more)
@@ -141,11 +142,12 @@ mcp run main.py:mcp     # runs the server via the CLI
 | Citation | `normalize_citation` | Normalize spacing + Bluebook‑style abbreviations |
 | Citation | `verify_citation_integrity` | Cross‑check a citation against the case database |
 | Contract | `compare_contracts` | Clause‑level differ with risk flags |
-| Contract | `analyze_clauses` | Rule‑based clause risk analysis |
+| Contract | `analyze_clauses` | Rule‑based clause risk analysis; includes `missing_clauses` on full‑contract runs |
 | Contract | `extract_clauses` | Template‑filtered clause extraction |
 | Contract | `suggest_clause_alternatives` | Curated alternative phrasings for risky clauses |
-| Contract | `generate_negotiation_guide` | Per‑clause accept/negotiate/reject guide with fallback language, adjusted by party role |
-| Document | `analyze_document` | Risk analysis for real `.docx` / `.txt` files |
+| Contract | `generate_negotiation_guide` | Per‑clause accept/negotiate/reject guide with fallback language and `missing_clauses` |
+| Contract | `deep_analyze_clause` | Keyword heuristics plus optional MCP LLM sampling for deeper reasoning (falls back when the client lacks sampling support) |
+| Document | `analyze_document` | Risk analysis for real `.docx` / `.txt` files; optional `contract_type` enables `missing_clauses` |
 | Document | `compare_documents` | Clause‑level diff for real `.docx` / `.txt` files |
 | Document | `export_analysis_report` | Export a formatted `.docx` risk report |
 | Document | `extract_contract_metadata` | Extract parties, dates, governing law, term, liability cap, and payment terms as structured JSON |
@@ -166,6 +168,7 @@ mcp run main.py:mcp     # runs the server via the CLI
 
 Static:
 
+- `legal://server-config` — enabled tool categories and feature‑flag env var names (always available)
 - `legal://case-database` — precedent index
 - `legal://statute-library` — statutory materials index
 - `legal://contract-templates` — contract/template index
@@ -188,6 +191,46 @@ Dynamic templates:
 
 See [`WORKFLOW_EXAMPLES.md`](WORKFLOW_EXAMPLES.md) for end‑to‑end workflow
 walkthroughs.
+
+---
+
+## Feature flags (tool categories)
+
+Every tool category is **enabled by default**. Set a `LEGAL_MCP_ENABLE_*`
+environment variable to `false` before starting the server to disable an
+entire category — its tools and matching resources will not be registered.
+There is no hard floor: disabling every category yields a server with zero
+tools (avoid this in production).
+
+Check the current state at any time via the always‑on resource
+`legal://server-config`.
+
+| Category | Environment variable | What it controls |
+| --- | --- | --- |
+| Research | `LEGAL_MCP_ENABLE_RESEARCH` | `search_*`, `extract_statute`, `research_legal_issue`; case/statute resources |
+| Citation | `LEGAL_MCP_ENABLE_CITATION` | `validate_citation`, `normalize_citation`, `verify_citation_integrity` |
+| Contract | `LEGAL_MCP_ENABLE_CONTRACT` | Contract tools including `deep_analyze_clause`; contract resources |
+| Document | `LEGAL_MCP_ENABLE_DOCUMENT` | `analyze_document`, `compare_documents`, `export_analysis_report`, `extract_contract_metadata` |
+| Privilege | `LEGAL_MCP_ENABLE_PRIVILEGE` | `check_privilege_risk` |
+| Brief | `LEGAL_MCP_ENABLE_BRIEF` | Brief tools; brief framework resources |
+| Analysis Queue | `LEGAL_MCP_ENABLE_ANALYSIS_QUEUE` | `queue_document_analysis`, `get_analysis_status`, `get_analysis_result`, `list_analysis_jobs` |
+| Integrations | `LEGAL_MCP_ENABLE_INTEGRATIONS` | `integration_status`, `search_live_case_law`; integration resources |
+
+Example (disable the local analysis queue only):
+
+```bash
+export LEGAL_MCP_ENABLE_ANALYSIS_QUEUE=false
+python main.py
+```
+
+See [`.env.example`](.env.example) for a copy‑paste template including live
+integration credentials.
+
+**Note on `deep_analyze_clause`:** this tool uses MCP
+`sampling/createMessage` to ask the connected client's LLM for deeper clause
+reasoning. Most MCP clients (including Cursor and Claude Desktop) do not yet
+advertise sampling support — in those environments the tool returns the same
+keyword heuristics as `analyze_clauses` plus an explanatory note, not an error.
 
 ---
 
