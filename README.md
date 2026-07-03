@@ -13,6 +13,62 @@ inspectable, deterministic local data and optional (opt‑in) live legal databas
 - **Transport:** stdio, SSE, and streamable‑HTTP (via FastMCP).
 - **Runtime:** Python 3.10+ and the official `mcp` SDK.
 
+## Contents
+
+- [Data flow & privacy boundaries](#data-flow--privacy-boundaries)
+- [PACER and paid‑database fees (read first)](#-pacer-and-paid-database-fees-read-first)
+- [Quick start](#-quick-start)
+- [Capabilities](#-capabilities)
+- [Live integrations (PACER & CourtListener/RECAP)](#-live-integrations-pacer--courtlistenerrecap)
+- [Docker (optional)](#-docker-optional)
+- [Forking & building your own](#-forking--building-your-own-llm-friendly)
+- [Architecture](#-architecture)
+- [Testing, linting & types](#-testing-linting--types)
+- [Legal & compliance notes](#-legal--compliance-notes)
+- [AI agent privacy considerations](#-ai-agent-privacy-considerations)
+- [Further reading](#-further-reading)
+- [Integration & development support](#-integration--development-support)
+- [License](#-license)
+
+---
+
+## Data flow & privacy boundaries
+
+Understanding **where data goes** is essential before connecting this server to
+an AI assistant or enabling live integrations. The diagram below shows the
+three separate trust boundaries involved in a typical workflow.
+
+```mermaid
+flowchart LR
+  user[User]
+  aiClient[AI Assistant]
+  inference[Inference Provider]
+  mcpServer[Legal MCP Server]
+  localData[Local seed data and files]
+  courtlistener[CourtListener / RECAP]
+  pacer[PACER]
+
+  user -->|"prompts and documents"| aiClient
+  aiClient -->|"full conversation context"| inference
+  aiClient <-->|"MCP tool calls and JSON responses"| mcpServer
+  mcpServer -->|"offline by default"| localData
+  mcpServer -.->|"opt-in, free"| courtlistener
+  mcpServer -.->|"opt-in, billable"| pacer
+```
+
+| Boundary | What crosses it | Default behavior | Privacy note |
+| --- | --- | --- | --- |
+| **You → AI assistant** | Prompts, uploaded files, tool results pasted into chat | Always active when using an AI client | Your inference provider's ToS governs retention, training, and privilege — not this server |
+| **AI assistant → MCP server** | Tool arguments (file paths, queries, contract IDs) and JSON responses | Local transport (stdio/SSE/HTTP on your machine) | Tool calls are audit-logged locally (`utils.audit`); responses stay on your network unless you expose the server |
+| **MCP server → external databases** | Search queries to CourtListener or PACER | **Disabled by default** | Enable only when needed; PACER may incur fees (see below) |
+
+**Key takeaway:** this MCP server is **offline and deterministic by default**.
+The highest privacy risk in most setups is the **inference provider** (OpenAI,
+Anthropic, Google, OpenRouter, etc.) receiving your full prompt context —
+including excerpts returned by these tools. See
+[AI agent privacy considerations](#-ai-agent-privacy-considerations) for
+provider-specific guidance.
+
 ---
 
 ## ⚠️ PACER and paid‑database fees (read first)
@@ -317,6 +373,9 @@ in‑memory FastMCP API. The live integrations are tested with an
 - **Not legal advice.** Output is a scaffold for attorney review.
 
 ## 🔒 AI agent privacy considerations
+
+See [Data flow & privacy boundaries](#data-flow--privacy-boundaries) for a
+visual overview of where data moves in a typical setup.
 
 When an AI assistant (Claude, GPT-4, Gemini, etc.) calls this MCP server,
 the **MCP server itself makes no external calls by default** — tool responses
