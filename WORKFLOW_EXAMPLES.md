@@ -15,6 +15,10 @@ Legal Team → AI Assistant → MCP Server → Tools/Resources/Prompts → Respo
 - [Brief Drafting Workflow](#brief-drafting-workflow)
 - [Citation Validation Workflow](#citation-validation-workflow)
 - [Statute Analysis Workflow](#statute-analysis-workflow)
+- [Negotiation Guide Workflow](#negotiation-guide-workflow)
+- [Real Document Analysis & Metadata Extraction Workflow](#real-document-analysis--metadata-extraction-workflow)
+- [Privilege Risk Check Workflow](#privilege-risk-check-workflow)
+- [Async Analysis Queue Workflow](#async-analysis-queue-workflow)
 
 ---
 
@@ -627,6 +631,351 @@ For your client's situation, we recommend:
 4. Prepare legal argument based on statutory analysis
 5. Consider contract language improvements for future agreements
 ```
+
+---
+
+## 🤝 Negotiation Guide Workflow
+
+### **Scenario**: In-house counsel needs a buyer-side negotiation position on a vendor's Master Services Agreement
+
+#### **Step 1: User Request**
+```
+In-house Counsel: "We're the buyer on this Master Services Agreement. Can you give me a
+clause-by-clause negotiation position — what to accept, what to push back on, and suggested
+fallback language?"
+```
+
+#### **Step 2: AI Assistant Processing**
+```
+AI Assistant: "I'll generate a negotiation guide from the buyer's perspective, flagging
+which clauses to accept, negotiate, or reject, with fallback language for anything risky."
+```
+
+#### **Step 3: MCP Server Interactions**
+
+**Tool Call:**
+```json
+{
+  "method": "tools/call",
+  "params": {
+    "name": "generate_negotiation_guide",
+    "arguments": {
+      "contract_id": "master_services_agreement",
+      "party_role": "buyer"
+    }
+  }
+}
+```
+
+#### **Step 4: Server Processing**
+1. **Contract Tools** load the MSA's clauses from the template library
+2. **Risk Heuristics** (`assess_clause_risk`) score each clause LOW / MEDIUM / HIGH
+3. **`POSITION_MATRIX`** maps `(risk_level, party_role)` to a recommended position
+4. **`CLAUSE_ALTERNATIVES`** supplies fallback language for risky clause types
+
+#### **Step 5: Response to Legal Team**
+```markdown
+## Negotiation Guide — Master Services Agreement (Buyer Position)
+
+**1. `limitation_of_liability` — HIGH risk**
+- **Position**: ❌ Reject
+- **Rationale**: High-risk clause favors seller; seek mutual cap or deletion.
+- **Fallback language**: "Indemnifying party's liability shall exclude indirect,
+  incidental, or consequential damages and shall not exceed the greater of fees
+  paid in the prior twelve months or $100,000."
+
+**2. `term_duration` — MEDIUM risk**
+- **Position**: ⚠️ Negotiate
+- **Rationale**: Review and narrow scope before accepting.
+- **Fallback language**: Standard fixed-term renewal with a 60-day non-renewal
+  notice window.
+
+**3. `scope_of_services` — LOW risk**
+- **Position**: ✅ Accept
+- **Rationale**: Standard market language.
+
+### Next Steps:
+1. Route HIGH-risk items to the vendor's counsel as redline priorities
+2. Confirm fallback language with senior counsel before sending
+3. Track final negotiated positions in the deal file
+```
+
+> **Note:** Output is an AI-generated scaffold for attorney review, not legal advice.
+> Every response from `generate_negotiation_guide` carries this disclaimer.
+
+---
+
+## 📑 Real Document Analysis & Metadata Extraction Workflow
+
+### **Scenario**: Contracts manager received a signed vendor agreement as a `.docx` file and needs a risk summary plus a quick-reference data sheet — without re-reading the whole document
+
+#### **Step 1: User Request**
+```
+Contracts Manager: "Here's the signed vendor agreement (vendor_agreement.docx). Can you
+flag any risky clauses and pull out the key terms — governing law, term length,
+auto-renewal, liability cap — so I don't have to hunt through the document?"
+```
+
+#### **Step 2: AI Assistant Processing**
+```
+AI Assistant: "I'll analyze the document for clause-level risk and extract the key
+contract terms into a structured summary."
+```
+
+#### **Step 3: MCP Server Interactions**
+
+**Tool Call 1 — risk analysis:**
+```json
+{
+  "method": "tools/call",
+  "params": {
+    "name": "analyze_document",
+    "arguments": {
+      "file_path": "/contracts/vendor_agreement.docx"
+    }
+  }
+}
+```
+
+**Tool Call 2 — structured metadata:**
+```json
+{
+  "method": "tools/call",
+  "params": {
+    "name": "extract_contract_metadata",
+    "arguments": {
+      "file_path": "/contracts/vendor_agreement.docx"
+    }
+  }
+}
+```
+
+**Tool Call 3 — exportable report:**
+```json
+{
+  "method": "tools/call",
+  "params": {
+    "name": "export_analysis_report",
+    "arguments": {
+      "analysis_json": "<result from analyze_document>",
+      "output_path": "/contracts/vendor_agreement_analysis.docx"
+    }
+  }
+}
+```
+
+#### **Step 4: Server Processing**
+1. **Document Tools** read the real `.docx` file directly — no seed-data ID required
+2. **Risk Heuristics** flag clauses (e.g., uncapped indemnification, unlimited liability)
+3. **Regex extraction** over the same clause text pulls parties, dates, governing law,
+   term, auto-renewal, notice period, liability cap, and payment terms
+4. **Export Tools** generate a formatted `.docx` report for the deal file
+
+#### **Step 5: Response to Legal Team**
+```markdown
+## Vendor Agreement — Analysis Summary
+
+**Overall Risk**: ⚠️ MEDIUM (1 of 6 clauses flagged)
+
+### Extracted Contract Metadata
+| Field | Value |
+| --- | --- |
+| Parties | Acme Inc., Vendor Corp. |
+| Effective Date | 2026-01-01 |
+| Governing Law | Delaware |
+| Term | 12 months |
+| Auto-Renewal | Yes |
+| Notice Period | 30 days |
+| Liability Cap | $100,000 |
+| Payment Terms | Net 45 |
+
+*Note: `extract_contract_metadata` is pure regex extraction — no legal judgment.
+Fields not found in the text return `null` rather than a guess.*
+
+### Flagged Clause
+**`indemnification`** — MEDIUM risk: no cap on indemnification obligations.
+
+A formatted `.docx` report was exported to
+`/contracts/vendor_agreement_analysis.docx` for the deal file.
+
+### Next Steps:
+1. Route the indemnification clause to counsel for a cap negotiation
+2. File the exported report alongside the signed agreement
+```
+
+---
+
+## 🔒 Privilege Risk Check Workflow
+
+### **Scenario**: Associate wants to paste a draft litigation memo into a general-purpose AI chatbot for a quick sanity check, but isn't sure if that risks attorney-client privilege
+
+#### **Step 1: User Request**
+```
+Associate: "Before I paste this litigation memo into ChatGPT for a quick review, can you
+check whether that's a privilege risk?"
+```
+
+#### **Step 2: AI Assistant Processing**
+```
+AI Assistant: "I'll run a privilege risk check against the memo, taking into account the
+provider you're planning to use and whether this review is attorney-directed."
+```
+
+#### **Step 3: MCP Server Interactions**
+
+**Tool Call:**
+```json
+{
+  "method": "tools/call",
+  "params": {
+    "name": "check_privilege_risk",
+    "arguments": {
+      "file_path": "/drafts/litigation_memo.docx",
+      "inference_provider": "openai",
+      "counsel_directed": false
+    }
+  }
+}
+```
+
+#### **Step 4: Server Processing**
+1. **Document Tools** read the memo's text
+2. **Privilege heuristics** scan for privilege-indicating language ("attorney-client",
+   "work product", "privileged", "legal advice", etc.) and AI-generation artifacts
+3. **`PROVIDER_POSTURES`** looks up the named provider's data retention and training
+   posture (`openai`, `anthropic`, `azure_openai`, `vertex_ai`, `openrouter`, `ollama`)
+4. Indicators + provider posture + `counsel_directed` combine into a risk score
+
+#### **Step 5: Response to Legal Team**
+```markdown
+## Privilege Risk Check — litigation_memo.docx
+
+**Provider**: OpenAI (API: no training by default, no ZDR option)
+**Counsel-Directed**: No
+**Privilege Indicators Found**: "attorney-client", "work product", "legal advice"
+
+**Privilege Risk**: 🔴 HIGH
+
+**Recommended Posture**: Do not route this document without explicit attorney
+authorization. The document may contain privileged content and the selected
+provider does not offer zero data retention. Use a local inference provider
+(e.g., Ollama) or obtain a BAA/ZDR agreement.
+
+**Heppner Note**: *United States v. Heppner* (S.D.N.Y. 2026) held that routing
+attorney-client privileged communications through a third-party AI inference
+provider may constitute a waiver of privilege where the provider retains data
+and the disclosure was not narrowly necessary.
+
+**ABA Rule**: ABA Model Rule 1.6 requires lawyers to make reasonable efforts to
+prevent inadvertent disclosure of client confidential information. ABA Formal
+Opinion 512 (2023) addresses competence obligations when using generative AI
+tools in legal practice.
+
+### Next Steps:
+1. Get explicit authorization from supervising counsel before sending
+2. Consider re-running the check with `inference_provider: "ollama"` for a
+   local, zero-retention alternative
+3. If proceeding, set `counsel_directed: true` only once an attorney has
+   actually authorized the disclosure
+```
+
+> **Note:** This check is a risk-screening heuristic, not a privilege determination.
+> Always consult qualified counsel before making privilege decisions.
+
+---
+
+## 📥 Async Analysis Queue Workflow
+
+### **Scenario**: Paralegal has a batch of 20 incoming vendor contracts to risk-screen overnight and wants to check results the next morning
+
+#### **Step 1: User Request**
+```
+Paralegal: "Queue up all 20 contracts in the /intake folder for analysis. I'll check the
+results tomorrow morning."
+```
+
+#### **Step 2: AI Assistant Processing**
+```
+AI Assistant: "I'll queue each contract for AI risk analysis and give you the job IDs so
+you can check status and pull results whenever you're ready."
+```
+
+#### **Step 3: MCP Server Interactions**
+
+**Tool Call — queue each file:**
+```json
+{
+  "method": "tools/call",
+  "params": {
+    "name": "queue_document_analysis",
+    "arguments": {
+      "file_path": "/intake/vendor_contract_07.docx",
+      "analysis_notes": "Batch intake — Q3 vendor onboarding"
+    }
+  }
+}
+```
+
+**Next morning — check status:**
+```json
+{
+  "method": "tools/call",
+  "params": {
+    "name": "get_analysis_status",
+    "arguments": { "job_id": "3f1c9e2a-....-....-............" }
+  }
+}
+```
+
+**Retrieve the result:**
+```json
+{
+  "method": "tools/call",
+  "params": {
+    "name": "get_analysis_result",
+    "arguments": { "job_id": "3f1c9e2a-....-....-............" }
+  }
+}
+```
+
+**List everything queued so far:**
+```json
+{
+  "method": "tools/call",
+  "params": { "name": "list_analysis_jobs", "arguments": {} }
+}
+```
+
+#### **Step 4: Server Processing**
+1. Each call to `queue_document_analysis` generates a UUID job ID, writes a `queued`
+   record to a local SQLite store (`legal_mcp_analysis.db`), runs the same risk
+   analysis as `analyze_document`, and updates the record to `complete` or `error`
+2. `get_analysis_status` / `get_analysis_result` / `list_analysis_jobs` read back from
+   the same local store — no network calls, no external submission
+
+#### **Step 5: Response to Legal Team**
+```markdown
+## Batch Analysis Queue — Q3 Vendor Onboarding
+
+20 contracts queued. 19 complete, 1 error (unsupported file format: `.pdf`).
+
+| Job ID (short) | File | Status | Overall Risk |
+| --- | --- | --- | --- |
+| 3f1c9e2a | vendor_contract_07.docx | complete | MEDIUM |
+| 7b4d0f11 | vendor_contract_08.docx | complete | HIGH |
+| a92e88c0 | vendor_contract_09.pdf | error | — (unsupported format) |
+| ... | ... | ... | ... |
+
+### Next Steps:
+1. Prioritize review of the 3 contracts flagged HIGH risk
+2. Convert the failed `.pdf` to `.docx` and re-queue
+3. Archive `complete` results into the contract management system
+```
+
+> **Note:** This is a local AI analysis job store, not a document submission
+> service — nothing leaves your machine, and no attorney workload is created.
+> For professional attorney review of flagged documents, contact
+> [edwin@genego.io](mailto:edwin@genego.io).
 
 ---
 
