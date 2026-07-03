@@ -154,6 +154,147 @@ def _build_analysis_report_docx(analysis: Dict[str, Any], output_path: Path) -> 
     document.save(str(output_path))
 
 
+_MONTHS = {
+    "january": 1, "february": 2, "march": 3, "april": 4,
+    "may": 5, "june": 6, "july": 7, "august": 8,
+    "september": 9, "october": 10, "november": 11, "december": 12,
+    "jan": 1, "feb": 2, "mar": 3, "apr": 4,
+    "jun": 6, "jul": 7, "aug": 8,
+    "sep": 9, "oct": 10, "nov": 11, "dec": 12,
+}
+
+
+def _extract_metadata_from_text(full_text: str, file_path: str) -> Dict[str, Any]:
+    """Run regex extraction heuristics over joined clause text."""
+
+    confidence_notes: List[str] = []
+
+    # Parties: look for "between <A> and <B>" patterns
+    parties: List[str] = []
+    party_match = re.search(
+        r"between\s+([A-Z][A-Za-z0-9 ,\.]+?)\s+(?:\(['\x22]?[A-Z][^)]*\)[\s,]+)?and\s+([A-Z][A-Za-z0-9 ,\.]+?)(?:\s*\(|,|\.|$)",
+        full_text,
+    )
+    if party_match:
+        parties = [party_match.group(1).strip(), party_match.group(2).strip()]
+
+    # Effective date
+    effective_date: Optional[str] = None
+    date_match = re.search(
+        r"(?:effective|dated?|as of|entered into as of)\s+(?:the\s+)?(\d{1,2}(?:st|nd|rd|th)?\s+(?:day\s+of\s+)?(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{4}|\d{4}-\d{2}-\d{2}|(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2},?\s+\d{4})",
+        full_text,
+        re.IGNORECASE,
+    )
+    if date_match:
+        raw_date = date_match.group(1).strip()
+        iso_match = re.match(r"(\d{4})-(\d{2})-(\d{2})", raw_date)
+        if iso_match:
+            effective_date = raw_date
+        else:
+            month_match = re.search(r"(January|February|March|April|May|June|July|August|September|October|November|December)", raw_date, re.IGNORECASE)
+            year_match = re.search(r"(\d{4})", raw_date)
+            day_match = re.search(r"\b(\d{1,2})\b", raw_date)
+            if month_match and year_match:
+                m = _MONTHS.get(month_match.group(1).lower(), 1)
+                d = int(day_match.group(1)) if day_match else 1
+                effective_date = f"{year_match.group(1)}-{m:02d}-{d:02d}"
+        if effective_date:
+            confidence_notes.append("effective_date extracted from document header")
+
+    # Governing law: look for "governed by the laws of [State]"
+    governing_law: Optional[str] = None
+    gov_match = re.search(
+        r"governed by the laws of (?:the )?(?:State of )?([A-Z][A-Za-z ]+?)(?:\.|,|;|\s+without)",
+        full_text,
+    )
+    if gov_match:
+        governing_law = gov_match.group(1).strip()
+
+    # Term in months
+    term_months: Optional[int] = None
+    term_match = re.search(
+        r"(?:initial\s+)?term\s+of\s+(?:one\s+\(1\)|two\s+\(2\)|three\s+\(3\)|(\d+))\s+(?:year|month)",
+        full_text,
+        re.IGNORECASE,
+    )
+    if term_match:
+        word_to_num = {"one (1)": 12, "two (2)": 24, "three (3)": 36}
+        for phrase, months in word_to_num.items():
+            if phrase.lower() in full_text.lower():
+                term_months = months
+                break
+        if term_months is None and term_match.group(1):
+            n = int(term_match.group(1))
+            unit_match = re.search(
+                r"term\s+of\s+\d+\s+(year|month)", full_text, re.IGNORECASE
+            )
+            unit = unit_match.group(1).lower() if unit_match else "year"
+            term_months = n * 12 if unit == "year" else n
+
+    # Auto-renewal
+    auto_renewal: Optional[bool] = None
+    if re.search(r"renew\s+automatically|automatic\s+renewal|auto[\s-]renew", full_text, re.IGNORECASE):
+        auto_renewal = True
+    elif re.search(r"does not renew|shall not renew|no automatic renewal", full_text, re.IGNORECASE):
+        auto_renewal = False
+
+    # Notice period in days
+    notice_period_days: Optional[int] = None
+    notice_match = re.search(
+        r"(\d+)\s*(?:calendar\s+|business\s+)?days['']?\s+(?:written\s+)?notice|notice\s+of\s+(\d+)\s*(?:calendar\s+|business\s+)?days",
+        full_text,
+        re.IGNORECASE,
+    )
+    if notice_match:
+        raw = notice_match.group(1) or notice_match.group(2)
+        if raw:
+            notice_period_days = int(raw)
+
+    # Liability cap in USD
+    liability_cap_usd: Optional[int] = None
+    cap_match = re.search(
+        r"\$\s*([\d,]+(?:\.\d+)?)\s*(?:million|thousand|USD|dollars)?",
+        full_text,
+        re.IGNORECASE,
+    )
+    if cap_match:
+        raw_val = cap_match.group(1).replace(",", "")
+        multiplier_match = re.search(r"\$[\d,]+\s*(million|thousand)", full_text, re.IGNORECASE)
+        multiplier = 1
+        if multiplier_match:
+            word = multiplier_match.group(1).lower()
+            multiplier = 1_000_000 if word == "million" else 1_000
+        try:
+            liability_cap_usd = int(float(raw_val) * multiplier)
+        except ValueError:
+            pass
+
+    # Payment terms in days
+    payment_terms_days: Optional[int] = None
+    pay_match = re.search(
+        r"(?:net|within|payable within)\s+(\d+)\s+(?:calendar\s+|business\s+)?days|(\d+)\s+day(?:s)?\s+(?:from|after)\s+(?:receipt|invoice|delivery)",
+        full_text,
+        re.IGNORECASE,
+    )
+    if pay_match:
+        raw = pay_match.group(1) or pay_match.group(2)
+        if raw:
+            payment_terms_days = int(raw)
+
+    return {
+        "parties": parties if parties else None,
+        "effective_date": effective_date,
+        "governing_law": governing_law,
+        "term_months": term_months,
+        "auto_renewal": auto_renewal,
+        "notice_period_days": notice_period_days,
+        "liability_cap_usd": liability_cap_usd,
+        "payment_terms_days": payment_terms_days,
+        "file_path": file_path,
+        "confidence_notes": confidence_notes,
+    }
+
+
 def register_document_tools(mcp) -> None:
     """Register document ingestion and export tools with the MCP server."""
 
@@ -254,3 +395,30 @@ def register_document_tools(mcp) -> None:
             },
             indent=2,
         )
+
+    @mcp.tool()
+    def extract_contract_metadata(file_path: str) -> str:
+        """Extract structured metadata from a .docx or .txt contract.
+
+        Returns parties, effective date, governing law, term, auto-renewal,
+        notice period, liability cap, and payment terms as structured JSON.
+        Pure extraction — no legal judgment. Not legal advice.
+        """
+        audit("extract_contract_metadata", file_path=file_path)
+        try:
+            clauses = read_document_clauses(file_path)
+        except FileNotFoundError:
+            return json.dumps(
+                {"file_path": file_path, "error": "File not found."},
+                indent=2,
+            )
+        except ValueError as exc:
+            return json.dumps(
+                {"file_path": file_path, "error": str(exc)},
+                indent=2,
+            )
+
+        full_text = " ".join(clauses.values())
+        metadata = _extract_metadata_from_text(full_text, file_path)
+        metadata["notice"] = "Pure extraction — not legal advice."
+        return json.dumps(metadata, indent=2)

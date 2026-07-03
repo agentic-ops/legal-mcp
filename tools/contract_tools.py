@@ -149,6 +149,18 @@ DISCLAIMER = (
     "AI-generated suggestions for attorney review only. Not legal advice."
 )
 
+POSITION_MATRIX: Dict[tuple, tuple] = {
+    ("HIGH", "buyer"):   ("reject",    "High-risk clause favors seller; seek mutual cap or deletion."),
+    ("HIGH", "seller"):  ("negotiate", "High-risk clause; confirm scope is intentional."),
+    ("HIGH", "mutual"):  ("negotiate", "High-risk; seek cap and carve-outs."),
+    ("MEDIUM", "buyer"): ("negotiate", "Review and narrow scope before accepting."),
+    ("MEDIUM", "seller"):("negotiate", "Confirm terms align with your risk tolerance."),
+    ("MEDIUM", "mutual"):("negotiate", "Standard negotiation point."),
+    ("LOW", "buyer"):    ("accept",    "Standard market language."),
+    ("LOW", "seller"):   ("accept",    "Standard market language."),
+    ("LOW", "mutual"):   ("accept",    "Standard market language."),
+}
+
 
 def register_contract_tools(mcp) -> None:
     """Register all contract tools with the MCP server."""
@@ -286,6 +298,84 @@ def register_contract_tools(mcp) -> None:
             "input_clause": clause_text,
             "current_risk": current_risk,
             "alternatives": alternatives,
+            "disclaimer": DISCLAIMER,
+            "notice": "not legal advice",
+        }
+        return json.dumps(result, indent=2)
+
+    @mcp.tool()
+    def generate_negotiation_guide(
+        contract_id: str,
+        party_role: str = "buyer",
+        focus_areas: Optional[List[str]] = None,
+    ) -> str:
+        """Generate a structured negotiation guide for a contract.
+
+        Returns per-clause recommended positions (accept / negotiate / reject),
+        rationale, and fallback language. AI-generated scaffold for attorney review.
+        Not legal advice.
+        """
+        audit(
+            "generate_negotiation_guide",
+            contract_id=contract_id,
+            party_role=party_role,
+        )
+        role = party_role.strip().lower()
+        if role not in ("buyer", "seller", "mutual"):
+            return json.dumps(
+                {
+                    "error": (
+                        "party_role must be one of: 'buyer', 'seller', 'mutual'."
+                    )
+                },
+                indent=2,
+            )
+
+        contract = data.get_contract(contract_id)
+        if contract is None:
+            return json.dumps(
+                {"contract_id": contract_id, "error": "Contract not found."},
+                indent=2,
+            )
+
+        clauses: Dict[str, str] = contract.get("clauses", {})
+        if focus_areas:
+            normalized_focus = [
+                f.strip().lower().replace("-", "_").replace(" ", "_")
+                for f in focus_areas
+            ]
+            clauses = {k: v for k, v in clauses.items() if k in normalized_focus}
+
+        guide_entries: List[Dict[str, Any]] = []
+        for clause_name, clause_text in clauses.items():
+            risk_result = assess_clause_risk(clause_text)
+            risk_level = risk_result["risk_level"]
+            position, rationale = POSITION_MATRIX.get(
+                (risk_level, role),
+                ("negotiate", "Standard negotiation point."),
+            )
+            normalized_name = (
+                clause_name.strip().lower().replace("-", "_").replace(" ", "_")
+            )
+            fallback_list = CLAUSE_ALTERNATIVES.get(normalized_name, FALLBACK_ALTERNATIVES)
+            fallback_text = fallback_list[0]["text"] if fallback_list else ""
+            guide_entries.append(
+                {
+                    "clause": clause_name,
+                    "risk_level": risk_level,
+                    "recommended_position": position,
+                    "rationale": rationale,
+                    "fallback_text": fallback_text,
+                    "flags": risk_result.get("flags", []),
+                }
+            )
+
+        result = {
+            "contract_id": contract["id"],
+            "title": contract.get("title"),
+            "party_role": role,
+            "clause_count": len(guide_entries),
+            "guide": guide_entries,
             "disclaimer": DISCLAIMER,
             "notice": "not legal advice",
         }

@@ -119,3 +119,87 @@ class TestSuggestClauseAlternatives:
         )
         assert "not legal advice" in payload["notice"].lower()
         assert "not legal advice" in payload["disclaimer"].lower()
+
+
+class TestGenerateNegotiationGuide:
+    @pytest.mark.asyncio
+    async def test_buyer_rejects_high_risk_clause(self, mcp_server):
+        payload = await call_tool_json(
+            mcp_server,
+            "generate_negotiation_guide",
+            {"contract_id": "client_proposed_nda", "party_role": "buyer"},
+        )
+        guide = payload["guide"]
+        # The client_proposed_nda has an uncapped indemnification clause (HIGH)
+        indemnification_entries = [
+            e for e in guide if e["clause"] == "indemnification"
+        ]
+        assert indemnification_entries, "indemnification clause should appear in guide"
+        assert indemnification_entries[0]["recommended_position"] == "reject"
+
+    @pytest.mark.asyncio
+    async def test_seller_negotiates_high_risk_clause(self, mcp_server):
+        payload = await call_tool_json(
+            mcp_server,
+            "generate_negotiation_guide",
+            {"contract_id": "client_proposed_nda", "party_role": "seller"},
+        )
+        guide = payload["guide"]
+        indemnification_entries = [
+            e for e in guide if e["clause"] == "indemnification"
+        ]
+        assert indemnification_entries
+        assert indemnification_entries[0]["recommended_position"] == "negotiate"
+
+    @pytest.mark.asyncio
+    async def test_each_clause_has_required_keys(self, mcp_server):
+        payload = await call_tool_json(
+            mcp_server,
+            "generate_negotiation_guide",
+            {"contract_id": "standard_nda_template", "party_role": "buyer"},
+        )
+        required_keys = {"clause", "risk_level", "recommended_position", "rationale", "fallback_text"}
+        for entry in payload["guide"]:
+            assert required_keys.issubset(entry.keys()), f"Missing keys in: {entry}"
+
+    @pytest.mark.asyncio
+    async def test_focus_areas_filter_output(self, mcp_server):
+        payload = await call_tool_json(
+            mcp_server,
+            "generate_negotiation_guide",
+            {
+                "contract_id": "standard_nda_template",
+                "party_role": "buyer",
+                "focus_areas": ["governing_law"],
+            },
+        )
+        assert payload["clause_count"] == 1
+        assert payload["guide"][0]["clause"] == "governing_law"
+
+    @pytest.mark.asyncio
+    async def test_disclaimer_present(self, mcp_server):
+        payload = await call_tool_json(
+            mcp_server,
+            "generate_negotiation_guide",
+            {"contract_id": "standard_nda_template", "party_role": "mutual"},
+        )
+        assert "not legal advice" in payload["notice"].lower()
+        assert payload["disclaimer"]
+
+    @pytest.mark.asyncio
+    async def test_invalid_contract_returns_error(self, mcp_server):
+        payload = await call_tool_json(
+            mcp_server,
+            "generate_negotiation_guide",
+            {"contract_id": "nonexistent_contract", "party_role": "buyer"},
+        )
+        assert "error" in payload
+
+    @pytest.mark.asyncio
+    async def test_invalid_party_role_returns_error(self, mcp_server):
+        payload = await call_tool_json(
+            mcp_server,
+            "generate_negotiation_guide",
+            {"contract_id": "standard_nda_template", "party_role": "alien"},
+        )
+        assert "error" in payload

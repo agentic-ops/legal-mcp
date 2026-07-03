@@ -128,7 +128,7 @@ mcp run main.py:mcp     # runs the server via the CLI
 
 ## 🧰 Capabilities
 
-### Tools (18)
+### Tools (27)
 
 | Category | Tool | Purpose |
 | --- | --- | --- |
@@ -143,14 +143,23 @@ mcp run main.py:mcp     # runs the server via the CLI
 | Contract | `analyze_clauses` | Rule‑based clause risk analysis |
 | Contract | `extract_clauses` | Template‑filtered clause extraction |
 | Contract | `suggest_clause_alternatives` | Curated alternative phrasings for risky clauses |
+| Contract | `generate_negotiation_guide` | Per‑clause accept/negotiate/reject guide with fallback language, adjusted by party role |
 | Document | `analyze_document` | Risk analysis for real `.docx` / `.txt` files |
 | Document | `compare_documents` | Clause‑level diff for real `.docx` / `.txt` files |
 | Document | `export_analysis_report` | Export a formatted `.docx` risk report |
+| Document | `extract_contract_metadata` | Extract parties, dates, governing law, term, liability cap, and payment terms as structured JSON |
+| Privilege | `check_privilege_risk` | Assess AI routing risk for potentially privileged documents; references *Heppner* and ABA Rule 1.6 |
 | Brief | `generate_brief_outline` | Outline from a brief framework by case type |
 | Brief | `create_argument_structure` | IRAC‑style argument scaffold |
 | Brief | `generate_issue_statement` | Issue‑statement framework from facts + law |
+| Analysis Queue | `queue_document_analysis` | Queue a document for local AI risk analysis; returns a job ID |
+| Analysis Queue | `get_analysis_status` | Check status of a queued analysis job (queued/complete/error) |
+| Analysis Queue | `get_analysis_result` | Retrieve the completed analysis result for a job |
+| Analysis Queue | `list_analysis_jobs` | List all jobs with statuses and timestamps |
 | Integrations | `integration_status` | Report which live sources are enabled/configured |
 | Integrations | `search_live_case_law` | Query CourtListener/RECAP or PACER (when enabled) |
+
+**13 contract templates** covering NDAs, MSAs (general + tech), DPAs (Global GDPR + US CCPA/CPRA), HIPAA BAA, Terms of Use, Privacy Policy, Advisor Agreement, California Offer Letter, Post‑Money SAFE, and Cookie Notice.
 
 ### Resources
 

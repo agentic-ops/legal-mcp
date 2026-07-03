@@ -166,3 +166,77 @@ class TestExportAnalysisReport:
             },
         )
         assert "error" in payload
+
+
+class TestExtractContractMetadata:
+    @pytest.mark.asyncio
+    async def test_extracts_governing_law_from_docx(self, mcp_server, tmp_path):
+        doc_path = tmp_path / "test_gov_law.txt"
+        doc_path.write_text(
+            "This Agreement is entered into between Acme Inc. and Vendor Corp.\n\n"
+            "Governing Law: This Agreement shall be governed by the laws of Delaware.",
+            encoding="utf-8",
+        )
+        payload = await call_tool_json(
+            mcp_server,
+            "extract_contract_metadata",
+            {"file_path": str(doc_path)},
+        )
+        assert payload.get("governing_law") is not None
+        assert "Delaware" in payload["governing_law"]
+
+    @pytest.mark.asyncio
+    async def test_extracts_numeric_liability_cap(self, mcp_server, tmp_path):
+        doc_path = tmp_path / "test_cap.txt"
+        doc_path.write_text(
+            "Limitation of Liability: Each party's aggregate liability shall not "
+            "exceed $500,000 in any twelve-month period.",
+            encoding="utf-8",
+        )
+        payload = await call_tool_json(
+            mcp_server,
+            "extract_contract_metadata",
+            {"file_path": str(doc_path)},
+        )
+        assert payload.get("liability_cap_usd") == 500000
+
+    @pytest.mark.asyncio
+    async def test_missing_fields_return_null_not_error(self, mcp_server, tmp_path):
+        doc_path = tmp_path / "test_minimal.txt"
+        doc_path.write_text("This is a simple agreement with minimal content.", encoding="utf-8")
+        payload = await call_tool_json(
+            mcp_server,
+            "extract_contract_metadata",
+            {"file_path": str(doc_path)},
+        )
+        assert "error" not in payload
+        # Missing fields should be null, not absent or erroring
+        assert "governing_law" in payload
+        assert "effective_date" in payload
+
+    @pytest.mark.asyncio
+    async def test_parties_extracted_from_nda(self, mcp_server, tmp_path):
+        doc_path = tmp_path / "test_nda_meta.txt"
+        doc_path.write_text(
+            "This Non-Disclosure Agreement is entered into between Acme Inc. "
+            "('Discloser') and Vendor Corp. ('Recipient') as of January 1, 2026.\n\n"
+            "Confidentiality: Recipient shall hold all information in confidence.",
+            encoding="utf-8",
+        )
+        payload = await call_tool_json(
+            mcp_server,
+            "extract_contract_metadata",
+            {"file_path": str(doc_path)},
+        )
+        parties = payload.get("parties") or []
+        all_names = " ".join(parties)
+        assert "Acme" in all_names or "Vendor" in all_names
+
+    @pytest.mark.asyncio
+    async def test_missing_file_returns_error(self, mcp_server):
+        payload = await call_tool_json(
+            mcp_server,
+            "extract_contract_metadata",
+            {"file_path": "does/not/exist.docx"},
+        )
+        assert "error" in payload
