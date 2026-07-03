@@ -1,10 +1,10 @@
-# Legal Research & Paralegal MCP Server
+# Legal MCP Server — Research, Paralegal & Workflow Automation
 
 A [Model Context Protocol](https://modelcontextprotocol.io) (MCP) server for
-structured legal workflows. It provides tools, resources, and prompts for
-precedent retrieval, statute analysis, citation validation, contract clause
-comparison, and guided brief scaffolding — all backed by inspectable,
-deterministic local data and optional (opt‑in) live legal databases.
+structured legal workflows. This **legal MCP server** provides tools, resources,
+and prompts for precedent retrieval, statute analysis, citation validation,
+contract clause comparison, and guided brief scaffolding — all backed by
+inspectable, deterministic local data and optional (opt‑in) live legal databases.
 
 > **This server provides legal‑workflow augmentation, not legal advice.** It
 > does not replace attorney review and judgment.
@@ -320,9 +320,10 @@ in‑memory FastMCP API. The live integrations are tested with an
 
 ## 💬 Integration & development support
 
-Need help integrating this server into your legal workflows, enabling the
-PACER or CourtListener/RECAP adapters, or building custom tools and
-extensions? Professional integration and development support is available.
+Need help integrating this legal MCP server into your practice workflows,
+enabling the PACER or CourtListener/RECAP adapters, or building custom law MCP
+tools and extensions? Professional integration and development support is
+available.
 
 - **Email:** [edwin@genego.io](mailto:edwin@genego.io)
 - **LinkedIn:** [Edwin Genego](https://www.linkedin.com/in/edwin-genego/)
