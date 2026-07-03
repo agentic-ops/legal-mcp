@@ -3,11 +3,13 @@
 from __future__ import annotations
 
 import json
+from pathlib import Path
 from typing import Any, Dict
 
 import pytest
 
 from main import create_server
+from tests.fixtures import RISKY_NDA_TEXT, build_clean_nda_docx, build_risky_nda_docx
 from utils import CitationParser, LegalDataManager
 
 
@@ -58,3 +60,28 @@ async def read_resource_json(server, uri: str) -> Any:
     first = list(contents)[0]
     text = getattr(first, "content", None) or getattr(first, "text", first)
     return json.loads(text)
+
+
+@pytest.fixture(scope="session")
+def risky_nda_docx(tmp_path_factory) -> Path:
+    """A .docx NDA containing known HIGH-risk clauses."""
+
+    path = tmp_path_factory.mktemp("documents") / "risky_nda.docx"
+    return build_risky_nda_docx(path)
+
+
+@pytest.fixture(scope="session")
+def clean_nda_docx(tmp_path_factory) -> Path:
+    """A .docx NDA with lower-risk language for comparison testing."""
+
+    path = tmp_path_factory.mktemp("documents") / "clean_nda.docx"
+    return build_clean_nda_docx(path)
+
+
+@pytest.fixture(scope="session")
+def risky_nda_txt(tmp_path_factory) -> Path:
+    """Same risky clause text saved as .txt for format-agnostic testing."""
+
+    path = tmp_path_factory.mktemp("documents") / "risky_nda.txt"
+    path.write_text(RISKY_NDA_TEXT, encoding="utf-8")
+    return path

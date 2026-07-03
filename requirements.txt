@@ -6,9 +6,15 @@
 # `mcp` CLI (which bundles the MCP Inspector integration).
 mcp[cli]>=1.28.0
 
+# Pydantic 2.10 breaks FastMCP tool return-type wrapping; 2.11+ required.
+pydantic>=2.11
+
 # HTTP client for the optional CourtListener / PACER integrations
 # (also pulled in transitively by mcp; pinned here as a direct dep).
 httpx>=0.28
+
+# Document ingestion and analysis report export (.docx)
+python-docx>=1.1
 
 # --- Development & testing ---
 pytest>=9.0
