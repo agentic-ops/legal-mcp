@@ -91,6 +91,20 @@ For official PACER billing rules, see [pacer.gov](https://pacer.gov).
 
 ---
 
+## Repository structure
+
+| Folder | Purpose |
+|--------|---------|
+| [`tools/`](tools/) | MCP tool implementations (27 tools across 8 categories) |
+| [`resources/`](resources/) | MCP resource endpoints (`legal://` URIs) |
+| [`prompts/`](prompts/) | Workflow prompt templates (8 prompts) |
+| [`data/`](data/) | Offline JSON seed data (cases, statutes, contracts, templates, citations) |
+| [`integrations/`](integrations/) | Optional live integrations (CourtListener/RECAP, PACER) — disabled by default |
+| [`tests/`](tests/) | pytest test suite (unit + integration) |
+| [`.agents/`](.agents/) | Vendor-agnostic agent skills (legal-mcp-toolkit) |
+
+---
+
 ## 🚀 Quick start
 
 ```bash
