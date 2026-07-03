@@ -333,4 +333,9 @@ workflow automation.
 
 ## 📝 License
 
-MIT.
+[GNU Affero General Public License v3.0 (AGPL-3.0)](LICENSE).
+
+Free to use, fork, and self-host. If you run a modified version as a network
+service, AGPL-3.0 requires you to publish your changes. Organizations that
+need to keep modifications private can contact
+[edwin@genego.io](mailto:edwin@genego.io) for a commercial license.
