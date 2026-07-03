@@ -11,7 +11,7 @@ from __future__ import annotations
 import json
 from typing import Any, Dict, List, Optional
 
-from tools.risk_helpers import assess_clause_risk
+from tools.risk_helpers import assess_clause_risk, find_missing_clauses
 from utils import audit, get_data_manager
 
 CLAUSE_ALTERNATIVES: Dict[str, List[Dict[str, str]]] = {
@@ -259,6 +259,11 @@ def register_contract_tools(mcp) -> None:
             "overall_risk": overall,
             "clause_analysis": analysis,
         }
+        if not clause_type:
+            result["missing_clauses"] = find_missing_clauses(
+                clauses.keys(),
+                contract.get("type"),
+            )
         return json.dumps(result, indent=2)
 
     @mcp.tool()
@@ -376,6 +381,10 @@ def register_contract_tools(mcp) -> None:
             "party_role": role,
             "clause_count": len(guide_entries),
             "guide": guide_entries,
+            "missing_clauses": find_missing_clauses(
+                contract.get("clauses", {}).keys(),
+                contract.get("type"),
+            ),
             "disclaimer": DISCLAIMER,
             "notice": "not legal advice",
         }

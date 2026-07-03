@@ -56,6 +56,34 @@ class TestAnalyzeDocument:
         assert "error" in payload
 
     @pytest.mark.asyncio
+    async def test_analyze_document_includes_missing_clauses(self, mcp_server, risky_nda_docx):
+        payload = await call_tool_json(
+            mcp_server,
+            "analyze_document",
+            {"file_path": str(risky_nda_docx), "contract_type": "NDA"},
+        )
+        assert "missing_clauses" in payload
+        assert isinstance(payload["missing_clauses"], list)
+
+    @pytest.mark.asyncio
+    async def test_analyze_document_contract_type_filters_missing_topics(
+        self, mcp_server, tmp_path
+    ):
+        doc_path = tmp_path / "minimal_msa.txt"
+        doc_path.write_text(
+            "Scope of Services: Provider shall perform services.\n\n"
+            "Governing Law: This Agreement shall be governed by the laws of Delaware.",
+            encoding="utf-8",
+        )
+        payload = await call_tool_json(
+            mcp_server,
+            "analyze_document",
+            {"file_path": str(doc_path), "contract_type": "MSA"},
+        )
+        assert "term" in payload["missing_clauses"]
+        assert "liab" in payload["missing_clauses"]
+
+    @pytest.mark.asyncio
     async def test_analyze_document_unsupported_format(
         self, mcp_server, tmp_path
     ):

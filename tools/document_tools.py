@@ -12,7 +12,7 @@ import re
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from tools.risk_helpers import assess_clause_risk
+from tools.risk_helpers import assess_clause_risk, find_missing_clauses
 from utils import audit
 
 
@@ -299,9 +299,12 @@ def register_document_tools(mcp) -> None:
     """Register document ingestion and export tools with the MCP server."""
 
     @mcp.tool()
-    def analyze_document(file_path: str) -> str:
+    def analyze_document(
+        file_path: str,
+        contract_type: Optional[str] = None,
+    ) -> str:
         """Analyze a ``.docx`` or ``.txt`` file and identify clause-level risks."""
-        audit("analyze_document", file_path=file_path)
+        audit("analyze_document", file_path=file_path, contract_type=contract_type)
         try:
             clauses = read_document_clauses(file_path)
         except FileNotFoundError:
@@ -325,6 +328,7 @@ def register_document_tools(mcp) -> None:
             "overall_risk": _overall_risk(clause_analysis),
             "clause_count": len(clauses),
             "clause_analysis": clause_analysis,
+            "missing_clauses": find_missing_clauses(clauses.keys(), contract_type),
             "notice": "Automated analysis for attorney review only. Not legal advice.",
         }
         return json.dumps(result, indent=2)

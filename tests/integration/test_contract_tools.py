@@ -50,6 +50,28 @@ class TestContractTools:
         assert payload["clause_count"] >= 1
         assert "confidentiality_scope" in payload["clauses"]
 
+    @pytest.mark.asyncio
+    async def test_analyze_clauses_includes_missing_clauses(self, mcp_server):
+        payload = await call_tool_json(
+            mcp_server, "analyze_clauses", {"contract_id": "standard_nda_template"}
+        )
+        assert "missing_clauses" in payload
+        assert isinstance(payload["missing_clauses"], list)
+
+    @pytest.mark.asyncio
+    async def test_analyze_clauses_filtered_clause_omits_missing_clauses(
+        self, mcp_server
+    ):
+        payload = await call_tool_json(
+            mcp_server,
+            "analyze_clauses",
+            {
+                "contract_id": "standard_nda_template",
+                "clause_type": "governing_law",
+            },
+        )
+        assert "missing_clauses" not in payload
+
 
 class TestSuggestClauseAlternatives:
     @pytest.mark.asyncio
@@ -203,3 +225,13 @@ class TestGenerateNegotiationGuide:
             {"contract_id": "standard_nda_template", "party_role": "alien"},
         )
         assert "error" in payload
+
+    @pytest.mark.asyncio
+    async def test_includes_missing_clauses(self, mcp_server):
+        payload = await call_tool_json(
+            mcp_server,
+            "generate_negotiation_guide",
+            {"contract_id": "standard_nda_template", "party_role": "buyer"},
+        )
+        assert "missing_clauses" in payload
+        assert isinstance(payload["missing_clauses"], list)
