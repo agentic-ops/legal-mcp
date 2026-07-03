@@ -36,5 +36,166 @@
       "limitation_of_liability": "Except for breaches of confidentiality, each party's aggregate liability shall not exceed the fees paid in the twelve (12) months preceding the claim.",
       "governing_law": "This Agreement shall be governed by the laws of the State of Delaware."
     }
+  },
+  "master_services_agreement_tech": {
+    "id": "master_services_agreement_tech",
+    "title": "Master Services Agreement — Technology & Software",
+    "type": "MSA",
+    "aliases": ["MSA_tech", "tech_MSA"],
+    "clauses": {
+      "scope_of_services": "Provider shall develop, deliver, and maintain the software and technology services described in mutually executed Statements of Work, including all integrations, APIs, and supporting infrastructure.",
+      "intellectual_property": "All work product, code, and deliverables created by Provider specifically for Client under this Agreement shall be works-made-for-hire. Provider retains ownership of its pre-existing tools, frameworks, and methodologies ('Background IP'); Client receives a perpetual, royalty-free license to Background IP solely as embedded in the deliverables.",
+      "data_security": "Provider shall maintain industry-standard security controls, including encryption in transit and at rest, access controls, and annual penetration testing. Provider shall notify Client of any confirmed security incident within forty-eight (48) hours.",
+      "integration_and_apis": "Provider shall maintain API compatibility with Client's systems for the duration of the Agreement. Provider shall provide ninety (90) days' advance notice of any breaking API changes.",
+      "limitation_of_liability": "Each party's aggregate liability shall not exceed the greater of (i) fees paid in the twelve (12) months preceding the claim or (ii) $500,000. Liability for gross negligence, willful misconduct, or IP infringement is not capped.",
+      "term_and_termination": "This Agreement shall remain in effect for two (2) years and renew automatically for one-year terms. Either party may terminate for material breach upon thirty (30) days' written notice if the breach remains uncured.",
+      "governing_law": "This Agreement shall be governed by the laws of the State of Delaware, without regard to its conflicts of law provisions.",
+      "dispute_resolution": "Disputes shall first be escalated to senior management for good-faith negotiation. Unresolved disputes shall be submitted to binding arbitration under JAMS rules in San Francisco, California."
+    }
+  },
+  "data_processing_addendum_global": {
+    "id": "data_processing_addendum_global",
+    "title": "Global Data Processing Addendum (GDPR + US)",
+    "type": "DPA",
+    "aliases": ["DPA_global", "GDPR_DPA"],
+    "clauses": {
+      "processing_scope": "Processor shall process Personal Data only on documented instructions from Controller, for the specific purposes set out in Annex I, and shall not process Personal Data for Processor's own purposes.",
+      "data_subject_rights": "Processor shall assist Controller in responding to data subject requests under Chapter III of the GDPR (access, rectification, erasure, restriction, portability, objection) within five (5) business days of receiving a request.",
+      "security_measures": "Processor shall implement technical and organizational measures appropriate to the risk, including pseudonymization and encryption of Personal Data, confidentiality and integrity assurances, and the ability to restore availability following an incident.",
+      "subprocessors": "Processor shall not engage a sub-processor without prior specific or general written authorization of Controller. Processor shall inform Controller of any intended changes to sub-processors with at least thirty (30) days' advance notice.",
+      "international_transfers": "Processor shall not transfer Personal Data outside the EEA unless (i) the destination country has an adequacy decision, (ii) appropriate safeguards such as Standard Contractual Clauses are in place, or (iii) Controller provides written consent.",
+      "breach_notification": "Processor shall notify Controller of a Personal Data Breach without undue delay and in any event within twenty-four (24) hours of becoming aware of the breach, providing sufficient detail to comply with GDPR Article 33 obligations.",
+      "data_retention_and_deletion": "Upon termination, Processor shall delete or return all Personal Data to Controller within thirty (30) days and certify deletion in writing, unless storage is required by applicable law.",
+      "audits": "Processor shall make available all information necessary to demonstrate compliance with this Addendum and allow for audits by Controller or a mandated auditor, upon reasonable advance notice."
+    }
+  },
+  "data_processing_addendum_us": {
+    "id": "data_processing_addendum_us",
+    "title": "US State Privacy Law Data Processing Addendum (CCPA/CPRA)",
+    "type": "DPA",
+    "aliases": ["DPA_US", "CCPA_DPA", "CPRA_DPA"],
+    "clauses": {
+      "processing_scope": "Service Provider shall process Personal Information only for the Business Purpose specified in the Agreement and shall not Sell or Share Personal Information or retain, use, or disclose Personal Information outside the direct business relationship with Business.",
+      "data_subject_rights": "Service Provider shall assist Business in responding to consumer requests under the CCPA/CPRA (right to know, right to delete, right to correct, right to opt-out of Sale/Sharing, right to limit use of Sensitive PI) within ten (10) business days.",
+      "security_measures": "Service Provider shall implement reasonable security procedures and practices appropriate to the nature of the Personal Information to protect it from unauthorized or illegal access, destruction, use, modification, or disclosure.",
+      "subcontractors": "Service Provider shall enter into a written contract with each subcontractor that imposes the same or substantially similar restrictions on use of Personal Information, and shall be liable for any failure by subcontractors to comply.",
+      "sensitive_personal_information": "Service Provider shall limit its use of Sensitive Personal Information to that which is necessary to perform the services or as otherwise permitted under applicable state law, and shall not use Sensitive PI to infer consumer characteristics.",
+      "audit_rights": "Service Provider shall allow Business to conduct reasonable audits or inspections to verify compliance with this Addendum, upon thirty (30) days' advance written notice.",
+      "governing_law": "This Addendum shall be governed by the laws of the State of California for CCPA/CPRA purposes. For other US state privacy laws, the law of the relevant state shall apply to processing of residents of that state."
+    }
+  },
+  "business_associate_agreement": {
+    "id": "business_associate_agreement",
+    "title": "HIPAA Business Associate Agreement",
+    "type": "BAA",
+    "aliases": ["BAA", "HIPAA_BAA"],
+    "clauses": {
+      "permitted_uses": "Business Associate may use and disclose Protected Health Information only as necessary to perform the services described in the Underlying Agreement, or as required by law, or for the proper management and administration of Business Associate.",
+      "safeguards": "Business Associate shall implement administrative, physical, and technical safeguards that reasonably and appropriately protect the confidentiality, integrity, and availability of electronic Protected Health Information as required by the HIPAA Security Rule (45 CFR Part 164, Subpart C).",
+      "subcontractors": "Business Associate shall ensure that any subcontractors that create, receive, maintain, or transmit Protected Health Information on behalf of Business Associate agree to the same restrictions and conditions through a written Business Associate Agreement.",
+      "breach_notification": "Business Associate shall notify Covered Entity of any Breach of Unsecured Protected Health Information without unreasonable delay and in no event later than sixty (60) calendar days of discovery. The notification shall include the information specified at 45 CFR 164.410.",
+      "minimum_necessary": "Business Associate shall make reasonable efforts to limit the use and disclosure of Protected Health Information to the minimum necessary to accomplish the intended purpose.",
+      "individual_rights": "Business Associate shall make available Protected Health Information as necessary to allow Covered Entity to respond to individual requests for access (45 CFR 164.524), amendment (45 CFR 164.526), and accounting of disclosures (45 CFR 164.528).",
+      "termination": "Upon termination, Business Associate shall return or destroy all Protected Health Information received from, or created or received on behalf of, Covered Entity that Business Associate maintains in any form. If return or destruction is infeasible, protections shall be extended indefinitely.",
+      "governing_law": "This Agreement shall be governed by HIPAA and its implementing regulations, and any applicable state privacy laws that provide greater protections."
+    }
+  },
+  "terms_of_use": {
+    "id": "terms_of_use",
+    "title": "Website Terms of Use",
+    "type": "ToU",
+    "aliases": ["TOU", "terms_of_service", "TOS"],
+    "clauses": {
+      "acceptance": "By accessing or using this website and its services, you agree to be bound by these Terms of Use. If you do not agree, you must immediately cease all use of the service.",
+      "permitted_use": "You may use this service only for lawful purposes and in accordance with these Terms. You agree not to use the service to transmit unlawful, harmful, threatening, abusive, defamatory, or otherwise objectionable content.",
+      "intellectual_property": "All content, trademarks, and materials on this service are owned by or licensed to Company. You are granted a limited, non-exclusive, revocable license to access and use the service for personal, non-commercial purposes.",
+      "user_content": "By submitting content to the service, you grant Company a worldwide, royalty-free, perpetual license to use, reproduce, modify, and distribute such content in connection with operating the service.",
+      "limitation_of_liability": "To the maximum extent permitted by law, Company shall not be liable for any indirect, incidental, special, consequential, or punitive damages arising from your use of the service, even if advised of the possibility of such damages.",
+      "disclaimer_of_warranties": "The service is provided 'as is' and 'as available' without warranties of any kind, either express or implied, including but not limited to merchantability, fitness for a particular purpose, or non-infringement.",
+      "arbitration": "Any dispute arising out of or relating to these Terms shall be resolved by binding arbitration under the AAA Consumer Arbitration Rules. You waive your right to participate in a class action lawsuit or class-wide arbitration.",
+      "governing_law": "These Terms shall be governed by the laws of the State of Delaware, without regard to conflicts of law principles. You consent to the exclusive jurisdiction of courts in Delaware for any dispute not subject to arbitration."
+    }
+  },
+  "global_privacy_policy": {
+    "id": "global_privacy_policy",
+    "title": "Global Privacy Policy (GDPR + US)",
+    "type": "PrivacyPolicy",
+    "aliases": ["privacy_policy", "global_pp"],
+    "clauses": {
+      "data_collected": "We collect information you provide directly (account registration, support requests), information collected automatically (usage data, device identifiers, cookies and similar technologies), and information from third parties (social login providers, business partners).",
+      "lawful_basis": "For EEA/UK users, we process your personal data on the following lawful bases: contractual necessity, legitimate interests, compliance with legal obligations, and your consent where required.",
+      "data_use": "We use collected data to provide and improve the service, communicate with you, prevent fraud and abuse, comply with legal obligations, and with your consent, for marketing purposes.",
+      "data_sharing": "We do not sell your personal data. We share personal data with service providers under data processing agreements, with business partners where you have consented, and with authorities when required by law.",
+      "international_transfers": "If you are located in the EEA or UK, personal data may be transferred to countries outside your jurisdiction. We use Standard Contractual Clauses or other approved mechanisms for such transfers.",
+      "data_subject_rights": "Depending on your jurisdiction, you may have the right to access, correct, delete, restrict, or port your personal data, to object to processing, and to withdraw consent. Submit requests to privacy@company.com.",
+      "data_retention": "We retain personal data for as long as necessary to provide the service, comply with legal obligations, resolve disputes, and enforce agreements. Retention periods vary by data category.",
+      "cookies": "We use essential, functional, analytics, and marketing cookies. You can manage cookie preferences through our cookie consent tool or your browser settings. Disabling certain cookies may affect service functionality.",
+      "california_rights": "California residents have additional rights under the CCPA/CPRA including the right to know about personal information collected, the right to delete, the right to opt out of sale/sharing, and the right to non-discrimination for exercising rights.",
+      "contact": "For privacy inquiries, contact our Data Protection Officer at dpo@company.com or write to us at [Company Address]."
+    }
+  },
+  "advisor_agreement": {
+    "id": "advisor_agreement",
+    "title": "Advisor Agreement (Equity + IP Assignment)",
+    "type": "AdvisorAgreement",
+    "aliases": ["advisor", "advisory_agreement"],
+    "clauses": {
+      "services": "Advisor agrees to provide advisory services to Company as reasonably requested, including strategic guidance, introductions, and expertise in Advisor's field. Advisor shall devote approximately [X] hours per month to such services.",
+      "equity_compensation": "In consideration for advisory services, Company grants Advisor an option to purchase [X] shares of Company Common Stock at an exercise price of $[X] per share, subject to vesting. Vesting shall be monthly over [12/24] months with no cliff, commencing on the date of this Agreement.",
+      "vesting_acceleration": "Unvested equity shall accelerate in full upon a Change of Control of the Company.",
+      "ip_assignment": "Advisor hereby irrevocably assigns to Company all right, title, and interest in any inventions, works of authorship, improvements, and other intellectual property created by Advisor in the course of performing services under this Agreement.",
+      "confidentiality": "Advisor shall hold all Company Confidential Information in strict confidence and shall not disclose it to any third party without Company's prior written consent. This obligation survives termination for five (5) years.",
+      "non_solicitation": "During the term and for one (1) year following termination, Advisor shall not solicit Company's employees, contractors, or customers for competitive purposes.",
+      "at_will_termination": "Either party may terminate this Agreement at will upon thirty (30) days' written notice. Unvested equity shall be forfeited upon termination by Advisor. Options to purchase vested equity shall be exercisable for ninety (90) days following termination.",
+      "governing_law": "This Agreement shall be governed by the laws of the State of Delaware. Any dispute shall be resolved in courts of competent jurisdiction in Delaware."
+    }
+  },
+  "employee_offer_letter_ca": {
+    "id": "employee_offer_letter_ca",
+    "title": "Employee Offer Letter — California Exempt",
+    "type": "OfferLetter",
+    "aliases": ["offer_letter_ca", "CA_offer_letter"],
+    "clauses": {
+      "position": "Company offers you the position of [Job Title], reporting to [Manager Title]. This is a full-time, exempt position.",
+      "compensation": "Your annual base salary will be $[X], paid on a [bi-weekly/semi-monthly] basis, less applicable withholdings. You will be eligible for an annual performance bonus of up to [X]% of your base salary, subject to Company and individual performance.",
+      "equity": "Subject to approval by the Board of Directors, you will be granted an option to purchase [X] shares of Company Common Stock. The option will vest over four (4) years with a one (1) year cliff.",
+      "benefits": "You will be eligible to participate in Company's standard benefit plans, including medical, dental, vision, and 401(k), subject to the terms of such plans.",
+      "at_will_employment": "Your employment with Company is at-will, meaning either you or Company may terminate the employment relationship at any time, with or without cause or notice, subject to applicable California law.",
+      "confidentiality_and_ip": "As a condition of employment, you are required to sign Company's standard Employee Proprietary Information and Inventions Assignment Agreement.",
+      "california_acknowledgements": "This offer is contingent upon satisfactory completion of a background check. Nothing in this offer letter is intended to conflict with California Labor Code protections, including those relating to final pay, meal and rest breaks, and reimbursement of business expenses.",
+      "start_date": "Your anticipated start date is [Date]. This offer will expire if not accepted by [Date]."
+    }
+  },
+  "safe_agreement": {
+    "id": "safe_agreement",
+    "title": "Simple Agreement for Future Equity (Post-Money SAFE)",
+    "type": "SAFE",
+    "aliases": ["SAFE", "post_money_SAFE", "YC_SAFE"],
+    "clauses": {
+      "investment": "Investor will deliver to Company [Investment Amount] (the 'Purchase Amount'). In exchange, Company agrees to issue to Investor its standard Post-Money SAFE, on the terms described herein.",
+      "conversion": "The Purchase Amount will automatically convert into shares of the Company's next equity financing round at the lower of (i) the Valuation Cap or (ii) the discount to the price paid by investors in such round.",
+      "valuation_cap": "The Valuation Cap is $[X]. For purposes of conversion, the post-money valuation of the Company (including all issued SAFEs) shall not exceed the Valuation Cap.",
+      "discount_rate": "Investor shall receive a discount of [X]% to the price per share paid by new investors in the next equity financing round.",
+      "pro_rata_rights": "Investor shall have the right, but not the obligation, to participate in the next equity financing in an amount up to Investor's pro rata share, calculated based on Investor's percentage ownership immediately prior to the financing.",
+      "most_favored_nation": "If Company issues any other SAFEs with a lower Valuation Cap or more favorable terms, Investor may elect to amend this SAFE to reflect those more favorable terms.",
+      "dissolution": "In the event of a dissolution or winding up of the Company, Investor shall be entitled to receive, in preference to holders of Common Stock, the greater of the Purchase Amount or the amount Investor would have received on an as-converted basis.",
+      "governing_law": "This SAFE shall be governed by the laws of the State of Delaware, without regard to conflicts of law principles."
+    }
+  },
+  "cookie_notice": {
+    "id": "cookie_notice",
+    "title": "Cookie Notice and Opt-Out",
+    "type": "CookieNotice",
+    "aliases": ["cookie_policy", "cookies"],
+    "clauses": {
+      "what_are_cookies": "Cookies are small text files placed on your device by websites you visit. They are widely used to make websites work, improve efficiency, and provide information to website operators.",
+      "types_of_cookies": "We use the following types of cookies: (1) Strictly Necessary — required for the website to function; (2) Functional — remember your preferences; (3) Analytics — help us understand how visitors use the site; (4) Marketing — used to deliver relevant advertisements.",
+      "third_party_cookies": "Some cookies are set by third-party services that appear on our pages, including analytics providers (Google Analytics) and advertising networks. These third parties have their own privacy policies.",
+      "opt_out": "You can opt out of non-essential cookies at any time using our Cookie Preference Center accessible via the link in the website footer. You may also configure your browser to block or delete cookies, though this may affect site functionality.",
+      "do_not_track": "We honor browser-level Do Not Track (DNT) signals. When a DNT signal is detected, we disable analytics and marketing cookies for that session.",
+      "consent": "When you first visit our website, we will ask for your consent to use non-essential cookies. Your consent is recorded and you may withdraw it at any time.",
+      "retention": "Session cookies are deleted when you close your browser. Persistent cookies remain on your device for the period specified in their expiry date, typically no longer than thirteen (13) months.",
+      "contact": "For questions about our use of cookies, contact privacy@company.com."
+    }
   }
 }

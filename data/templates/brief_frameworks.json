@@ -43,5 +43,155 @@
       {"heading": "V. ARGUMENT", "subsections": ["First Assignment of Error", "Second Assignment of Error"]},
       {"heading": "VI. CONCLUSION", "subsections": []}
     ]
+  },
+  "privacy_compliance_review": {
+    "id": "privacy_compliance_review",
+    "title": "Privacy Compliance Review Outline (DPA / BAA)",
+    "applicable_case_types": ["privacy", "data_protection", "hipaa", "gdpr", "dpa", "baa"],
+    "sections": [
+      {
+        "heading": "I. DOCUMENT IDENTIFICATION",
+        "subsections": ["Document Type", "Governing Regulatory Framework", "Parties and Roles", "Effective Date and Term"]
+      },
+      {
+        "heading": "II. DATA PROCESSING SCOPE",
+        "subsections": [
+          "Categories of Personal Data / PHI",
+          "Purpose and Lawful Basis for Processing",
+          "Processing Instructions and Limitations",
+          "Minimum Necessary / Data Minimization"
+        ]
+      },
+      {
+        "heading": "III. SECURITY AND SAFEGUARDS",
+        "subsections": [
+          "Technical Safeguards (Encryption, Access Controls)",
+          "Administrative Safeguards (Policies, Training)",
+          "Physical Safeguards",
+          "Incident Response and Breach Notification Timelines"
+        ]
+      },
+      {
+        "heading": "IV. SUBPROCESSORS AND SUBCONTRACTORS",
+        "subsections": [
+          "Authorization Requirements",
+          "Notice Obligations",
+          "Flow-Down Requirements"
+        ]
+      },
+      {
+        "heading": "V. DATA SUBJECT / INDIVIDUAL RIGHTS",
+        "subsections": [
+          "Access, Rectification, Erasure (GDPR / CCPA)",
+          "Opt-Out of Sale or Sharing (CCPA/CPRA)",
+          "Individual Rights Assistance Obligations",
+          "Response Timeframes"
+        ]
+      },
+      {
+        "heading": "VI. INTERNATIONAL TRANSFERS",
+        "subsections": [
+          "Transfer Mechanisms (SCCs, Adequacy Decisions)",
+          "US Cross-Border Transfer Risks",
+          "HIPAA Cross-Border Considerations"
+        ]
+      },
+      {
+        "heading": "VII. AUDIT AND COMPLIANCE",
+        "subsections": [
+          "Audit Rights and Procedures",
+          "Compliance Certifications",
+          "Record-Keeping Obligations"
+        ]
+      },
+      {
+        "heading": "VIII. RETENTION AND DELETION",
+        "subsections": [
+          "Retention Periods by Data Category",
+          "Deletion and Return Procedures",
+          "Certification of Deletion"
+        ]
+      },
+      {
+        "heading": "IX. RISK SUMMARY AND RECOMMENDATIONS",
+        "subsections": [
+          "High-Risk Provisions",
+          "Missing Required Provisions",
+          "Recommended Revisions"
+        ]
+      }
+    ]
+  },
+  "employment_document_review": {
+    "id": "employment_document_review",
+    "title": "Employment Document Review Outline (Offer Letter / Advisor Agreement)",
+    "applicable_case_types": ["employment", "offer_letter", "advisor_agreement", "equity"],
+    "sections": [
+      {
+        "heading": "I. DOCUMENT IDENTIFICATION",
+        "subsections": ["Document Type", "Jurisdiction", "Parties", "Effective Date"]
+      },
+      {
+        "heading": "II. COMPENSATION AND EQUITY",
+        "subsections": [
+          "Base Salary / Cash Compensation",
+          "Equity Grant (Type, Amount, Exercise Price)",
+          "Vesting Schedule and Cliff",
+          "Acceleration Provisions",
+          "Bonus and Incentive Structure"
+        ]
+      },
+      {
+        "heading": "III. IP AND CONFIDENTIALITY",
+        "subsections": [
+          "IP Assignment Scope",
+          "Prior Inventions Carve-Out",
+          "Confidentiality Duration",
+          "Return of Materials"
+        ]
+      },
+      {
+        "heading": "IV. NON-COMPETE AND NON-SOLICITATION",
+        "subsections": [
+          "Geographic and Temporal Scope",
+          "Enforceability by Jurisdiction (CA vs. Other States)",
+          "Customer and Employee Non-Solicitation"
+        ]
+      },
+      {
+        "heading": "V. TERMINATION",
+        "subsections": [
+          "At-Will vs. For Cause Provisions",
+          "Notice Requirements",
+          "Severance and Post-Termination Benefits",
+          "Options Exercise Period Post-Termination"
+        ]
+      },
+      {
+        "heading": "VI. REGULATORY COMPLIANCE",
+        "subsections": [
+          "California Labor Code Compliance (if CA)",
+          "Exempt vs. Non-Exempt Classification",
+          "WARN Act / Mass Layoff Obligations",
+          "Benefits Compliance (ERISA, ACA)"
+        ]
+      },
+      {
+        "heading": "VII. DISPUTE RESOLUTION",
+        "subsections": [
+          "Arbitration Clause",
+          "Governing Law",
+          "Class Action Waiver"
+        ]
+      },
+      {
+        "heading": "VIII. RISK SUMMARY AND RECOMMENDATIONS",
+        "subsections": [
+          "Employee / Advisor Perspective Risks",
+          "Company Perspective Risks",
+          "Recommended Revisions"
+        ]
+      }
+    ]
   }
 }
