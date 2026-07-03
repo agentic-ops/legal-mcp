@@ -318,6 +318,18 @@ in‑memory FastMCP API. The live integrations are tested with an
   [RECAP](https://free.law/recap/)
 - [PACER developer resources](https://pacer.uscourts.gov/file-case/developer-resources)
 
+## 💬 Integration & development support
+
+Need help integrating this server into your legal workflows, enabling the
+PACER or CourtListener/RECAP adapters, or building custom tools and
+extensions? Professional integration and development support is available.
+
+- **Email:** [edwin@genego.io](mailto:edwin@genego.io)
+- **LinkedIn:** [Edwin Genego](https://www.linkedin.com/in/edwin-genego/)
+
+We're happy to help with deployment, custom integrations, and tailored legal
+workflow automation.
+
 ## 📝 License
 
 MIT.
