@@ -7,6 +7,7 @@ requires-python = ">=3.10"
 license = { text = "MIT" }
 dependencies = [
     "mcp[cli]>=1.28.0",
+    "httpx>=0.28",
 ]
 
 [project.optional-dependencies]
@@ -17,7 +18,6 @@ dev = [
     "black>=26.0",
     "flake8>=7.0",
     "mypy>=2.0",
-    "httpx>=0.28",
 ]
 
 [tool.pytest.ini_options]

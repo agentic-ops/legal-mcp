@@ -14,8 +14,10 @@ from typing import Optional
 from utils import audit, get_data_manager
 
 FEE_NOTICE = (
-    "Local seed data only. Live precedent adapters (CourtListener/RECAP, "
-    "PACER) are not enabled in this build; PACER usage may incur fees."
+    "Results are from local seed data. Live sources (CourtListener/RECAP, "
+    "PACER) are optional and disabled by default; enable them via feature "
+    "flags and query them with the 'search_live_case_law' tool. Check "
+    "'integration_status' first. PACER usage may incur fees."
 )
 
 

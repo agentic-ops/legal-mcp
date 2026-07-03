@@ -6,11 +6,14 @@
 # `mcp` CLI (which bundles the MCP Inspector integration).
 mcp[cli]>=1.28.0
 
+# HTTP client for the optional CourtListener / PACER integrations
+# (also pulled in transitively by mcp; pinned here as a direct dep).
+httpx>=0.28
+
 # --- Development & testing ---
 pytest>=9.0
 pytest-asyncio>=1.0
 pytest-cov>=7.0
-httpx>=0.28
 
 # --- Linting & type checking ---
 black>=26.0

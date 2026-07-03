@@ -1,0 +1,32 @@
+# Optional Docker Compose setup for the Legal MCP Server.
+#
+#   docker compose up --build
+#
+# The server is exposed over SSE at http://localhost:8000/sse.
+# Optional live integrations are disabled by default; enable them by
+# setting the corresponding environment variables (for example in a
+# .env file placed next to this compose file).
+services:
+  legal-mcp:
+    build: .
+    image: legal-mcp:latest
+    ports:
+      - "8000:8000"
+    environment:
+      HOST: "0.0.0.0"
+      PORT: "8000"
+      MCP_TRANSPORT: "sse"
+      LOG_LEVEL: "INFO"
+
+      # --- CourtListener / RECAP (free, preferred) ---
+      COURTLISTENER_ENABLED: "${COURTLISTENER_ENABLED:-false}"
+      COURTLISTENER_API_TOKEN: "${COURTLISTENER_API_TOKEN:-}"
+
+      # --- PACER (paid; may incur fees; disabled by default) ---
+      PACER_ENABLED: "${PACER_ENABLED:-false}"
+      PACER_ENVIRONMENT: "${PACER_ENVIRONMENT:-qa}"
+      PACER_LOGIN_ID: "${PACER_LOGIN_ID:-}"
+      PACER_PASSWORD: "${PACER_PASSWORD:-}"
+      PACER_CLIENT_CODE: "${PACER_CLIENT_CODE:-}"
+      PACER_OTP_SECRET: "${PACER_OTP_SECRET:-}"
+    restart: unless-stopped

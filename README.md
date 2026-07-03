@@ -1,525 +1,323 @@
 # Legal Research & Paralegal MCP Server
 
-A specialized Model Context Protocol (MCP) server for structured legal workflows. This server provides tools, resources, and prompts for precedent retrieval, statute analysis, citation validation, contract analysis, and guided brief scaffolding. **Status: Experimental - Iterating with partner cohort.**
+A [Model Context Protocol](https://modelcontextprotocol.io) (MCP) server for
+structured legal workflows. It provides tools, resources, and prompts for
+precedent retrieval, statute analysis, citation validation, contract clause
+comparison, and guided brief scaffolding — all backed by inspectable,
+deterministic local data and optional (opt‑in) live legal databases.
 
-## ⚠️ PACER and Paid Database Fees
+> **This server provides legal‑workflow augmentation, not legal advice.** It
+> does not replace attorney review and judgment.
 
-**If you connect this MCP (or an AI assistant using it) to PACER or other paid legal databases, you are responsible for all charges incurred on your account.**
+- **Status:** V1 — implemented and tested.
+- **Transport:** stdio, SSE, and streamable‑HTTP (via FastMCP).
+- **Runtime:** Python 3.10+ and the official `mcp` SDK.
 
-PACER and similar services bill per page, per document, or per search. AI agents can issue many requests in minutes. In real-world testing, a short (~10 minute) agent session nearly exhausted a standard PACER account's **$30 per quarter** fee waiver.
+---
 
-**Who is most at risk**
-- **Pro se litigants** and individual users on standard PACER accounts without institutional billing
-- Anyone who does **not** actively monitor PACER usage and billing alerts
-- Users expecting "free" research — PACER is not free beyond the quarterly waiver threshold
+## ⚠️ PACER and paid‑database fees (read first)
 
-**Who may have safer arrangements**
-- Law firms with firm-wide PACER billing and internal monitoring
-- Academic/research accounts with different fee structures (verify with your institution)
+**If you connect this MCP (or an AI assistant using it) to PACER or other paid
+legal databases, you are responsible for all charges incurred on your
+account.** PACER bills per page, per document, or per search. AI agents can
+issue many requests in minutes; in real‑world testing a short (~10 minute)
+agent session nearly exhausted a standard PACER account's **$30 per quarter**
+fee waiver.
 
-**This MCP does not**
-- Enforce spending limits or rate caps on external databases
-- Monitor your PACER balance or stop requests when a quota is reached
-- Provide legal advice or substitute for attorney review
-
-**Recommended practice**
-- Monitor your PACER account dashboard before and after agent sessions
-- Start with narrow, specific queries; avoid open-ended "research everything" prompts
-- Prefer free sources when available — **CourtListener / RECAP** integration is planned as a primary search path to reduce reliance on paid PACER pulls (not yet available in v0.1)
+To protect you from surprise fees, **every live integration in this server is
+disabled by default** and must be explicitly enabled with a feature flag and
+credentials (see [Live integrations](#-live-integrations-pacer--courtlistenerrecap)).
+Prefer the free **CourtListener / RECAP** source over PACER wherever possible.
 
 For official PACER billing rules, see [pacer.gov](https://pacer.gov).
 
-## 🏗️ Architecture
+---
 
-The server is built with a schema-first, inspectable architecture for legal workflow augmentation:
+## 🚀 Quick start
 
-```
-legal-mcp/
-├── main.py                    # Main server entry point
-├── utils.py                   # Core legal data management utilities
-├── tools/                     # MCP Tools (organized by category)
-│   ├── research_tools.py      # Precedent retrieval and statute extraction
-│   ├── citation_tools.py      # Citation validation and normalization
-│   ├── contract_tools.py      # Contract analysis and clause differ
-│   └── brief_tools.py         # Brief scaffolding and argument outlines
-├── resources/                 # MCP Resources (organized by domain)
-│   ├── case_resources.py      # Case law and precedent resources
-│   ├── statute_resources.py   # Statutory materials
-│   ├── contract_resources.py  # Contract templates and analysis
-│   └── brief_resources.py     # Brief templates and frameworks
-├── prompts/                   # MCP Prompts (user-controlled templates)
-│   ├── __init__.py            # Central prompt registration
-│   ├── research_prompts.py    # Legal research analysis prompts
-│   ├── drafting_prompts.py    # Document drafting prompts
-│   ├── analysis_prompts.py    # Contract and clause analysis prompts
-│   └── argument_prompts.py    # Brief and argument construction prompts
-└── data/                      # Legal data files
-    ├── cases/                 # TBD - Case law database
-    ├── statutes/              # TBD - Statutory materials
-    ├── contracts/             # Sample contracts and clauses
-    └── templates/             # Legal document templates
+```bash
+# 1. Install dependencies (uses your user site-packages; a venv also works)
+pip install -r requirements.txt
+
+# 2. Run the server (SSE transport on http://127.0.0.1:8000/sse by default)
+python main.py
+
+# 3. (Optional) Explore it in the MCP Inspector
+npx @modelcontextprotocol/inspector
+#    In the Inspector: Transport = SSE, URL = http://127.0.0.1:8000/sse, Connect.
 ```
 
-## 🚀 Features
+Run over a different transport:
 
-### MCP Capabilities
-- **6 Tools (Planned)**: Focused legal workflow primitives
-- **15+ Resources (Seed)**: Legal reference materials and templates
-- **4 Prompts (Planned)**: Structured legal analysis templates
-- **SSE Transport**: Web-compatible Server-Sent Events endpoint
+```bash
+python main.py --transport stdio            # for Claude Desktop / CLI clients
+python main.py --transport streamable-http  # modern HTTP transport
+python main.py --transport sse --port 9000  # custom port
+```
 
-### Tool Categories
+All flags also read from environment variables: `MCP_TRANSPORT`, `HOST`,
+`PORT`, `LOG_LEVEL`.
 
-#### 🔍 Legal Research (Coming Soon)
-- Multi-source precedent retrieval adapters (planned)
-- Statute excerpt extraction and contextual analysis
-- Case law search with relevance ranking
-- Jurisdictional filtering and citation tracking
+### Use it with the MCP CLI / Inspector directly
 
-#### ✓ Citation Management (Planned)
-- Citation normalization and validation staging
-- Bluebook/jurisdiction-specific formatting
-- Citation integrity verification
-- Cross-reference resolution
+The server exposes a module‑level `mcp` object, so you can load it with the
+MCP CLI:
 
-#### 📄 Contract Analysis (In Development)
-- Clause-level differ with risk identification
-- Contract comparison and variance detection
-- Template-based clause extraction
-- Risk flag categorization and highlighting
+```bash
+mcp dev main.py:mcp     # launches the Inspector wired to this server
+mcp run main.py:mcp     # runs the server via the CLI
+```
 
-#### 📝 Brief Scaffolding (Planned)
-- Guided brief outline generation
-- Argument structure templates
-- Issue statement frameworks
-- Authority integration patterns
+---
 
-#### ⚙️ System Management (Coming Soon)
-- Data refresh and cache management
-- Citation database updates
-- System statistics and audit logs
+## 🧰 Capabilities
+
+### Tools (14)
+
+| Category | Tool | Purpose |
+| --- | --- | --- |
+| Research | `search_precedents` | Keyword‑ranked precedent search over local cases |
+| Research | `search_case_law` | Case‑law search with relevance ranking and summaries |
+| Research | `extract_statute` | Statute text with optional legislative context |
+| Citation | `validate_citation` | Validate structure and reporter; return issues |
+| Citation | `normalize_citation` | Normalize spacing + Bluebook‑style abbreviations |
+| Citation | `verify_citation_integrity` | Cross‑check a citation against the case database |
+| Contract | `compare_contracts` | Clause‑level differ with risk flags |
+| Contract | `analyze_clauses` | Rule‑based clause risk analysis |
+| Contract | `extract_clauses` | Template‑filtered clause extraction |
+| Brief | `generate_brief_outline` | Outline from a brief framework by case type |
+| Brief | `create_argument_structure` | IRAC‑style argument scaffold |
+| Brief | `generate_issue_statement` | Issue‑statement framework from facts + law |
+| Integrations | `integration_status` | Report which live sources are enabled/configured |
+| Integrations | `search_live_case_law` | Query CourtListener/RECAP or PACER (when enabled) |
 
 ### Resources
 
-#### Static Resources (Seed Data)
-- `legal://case-database`: Legal precedent index (TBD)
-- `legal://statute-library`: Statutory materials (TBD)
-- `legal://contract-templates`: Standard contract templates (Seed)
-- `legal://brief-frameworks`: Brief outline templates (Seed)
-- `legal://citation-standards`: Citation formatting rules (Seed)
+Static:
 
-#### Dynamic Resource Templates (Planned)
-- `legal://case/{case_id}/analysis`: Case analysis with extraction
-- `legal://statute/{statute_id}/context`: Statutory context and history
-- `legal://contract/{contract_id}/differ`: Contract comparison results
-- `legal://brief/{brief_id}/outline`: Brief structure and arguments
-- `legal://citation/{citation_id}/validate`: Citation validation results
+- `legal://case-database` — precedent index
+- `legal://statute-library` — statutory materials index
+- `legal://contract-templates` — contract/template index
+- `legal://brief-frameworks` — brief outline templates
+- `legal://citation-standards` — reporter + Bluebook reference data
+- `legal://integrations` — live‑integration status (feature flags/config)
 
-### Prompts (4 Planned)
+Dynamic templates:
 
-#### Research Prompts (Planned)
-- **Precedent Analysis**: Case law evaluation and applicability assessment
-- **Statutory Interpretation**: Statute analysis with legislative context
+- `legal://case/{case_id}/analysis`
+- `legal://statute/{statute_id}/context`
+- `legal://contract/{contract_id}/differ`
+- `legal://brief/{brief_id}/outline`
 
-#### Drafting Prompts (Planned)
-- **Brief Construction**: Structured brief writing framework
-- **Argument Development**: Legal argument construction and refinement
+### Prompts (8)
 
-#### Analysis Prompts (Planned)
-- **Contract Review**: Comprehensive contract analysis template
-- **Clause Comparison**: Side-by-side clause analysis framework
+`precedent_analysis`, `statutory_interpretation`, `brief_construction`,
+`argument_development`, `contract_review`, `clause_comparison`,
+`citation_validation`, `authority_integration`.
 
-#### Citation Prompts (Planned)
-- **Citation Validation**: Citation integrity checking workflow
-- **Authority Integration**: Strategic authority placement guidance
+See [`WORKFLOW_EXAMPLES.md`](WORKFLOW_EXAMPLES.md) for end‑to‑end workflow
+walkthroughs.
 
-## 📦 Installation
+---
 
-1. **Clone the repository**:
-   ```bash
-   git clone https://github.com/agentic-ops/legal-mcp.git
-   cd legal-mcp
-   ```
+## 🔌 Live integrations (PACER & CourtListener/RECAP)
 
-2. **Install dependencies**:
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-3. **Run the server**:
-   ```bash
-   python main.py
-   ```
-
-## 🔍 MCP Inspector
-
-To inspect and debug your MCP server, you can use the MCP Inspector tool:
+Live legal databases are **optional and disabled by default**. Each is
+controlled by a **feature flag** plus **API credentials**, all supplied via
+environment variables. Check the current state at any time:
 
 ```bash
-npx @modelcontextprotocol/inspector
+# via the tool
+search_live_case_law / integration_status
+# or the resource
+legal://integrations
 ```
 
-This will launch the MCP Inspector interface, allowing you to:
-- Monitor MCP messages in real-time
-- Debug tool and resource calls
-- Inspect server responses
-- Test server functionality
-- Validate schema conformance
+`integration_status` and the `legal://integrations` resource return only
+booleans and non‑sensitive metadata — **credentials are never echoed back**.
 
-## 🌐 Server Transport
+### CourtListener / RECAP (Free Law Project) — free, preferred
 
-The server uses **Server-Sent Events (SSE)** transport, making it compatible with:
-- Web browsers and HTTP clients
-- Traditional MCP clients
-- Custom legal workflow integrations
+CourtListener exposes a free, rate‑limited [REST API
+(v4)](https://www.courtlistener.com/help/api/rest/) that also serves the
+[RECAP Archive](https://free.law/recap/) of PACER documents. Authentication is
+an `Authorization: Token <token>` header.
 
-### Connection Details
-- **SSE Endpoint**: `http://127.0.0.1:8000/sse` (for establishing SSE connection)
-- **Message Endpoint**: `http://127.0.0.1:8000/messages/` (for posting MCP messages)
-- **Transport**: SSE (Server-Sent Events)
-- **Protocol**: MCP (Model Context Protocol)
+| Variable | Default | Description |
+| --- | --- | --- |
+| `COURTLISTENER_ENABLED` | `false` | Feature flag to enable the integration |
+| `COURTLISTENER_API_TOKEN` | _(unset)_ | Token from your CourtListener profile |
+| `COURTLISTENER_BASE_URL` | `https://www.courtlistener.com/api/rest/v4` | Override for testing |
 
-### Web Client Example
-```javascript
-// Establish SSE connection
-const eventSource = new EventSource('http://127.0.0.1:8000/sse');
-eventSource.onmessage = function(event) {
-    const mcpMessage = JSON.parse(event.data);
-    // Handle MCP protocol messages
-};
-
-// Send MCP messages
-async function sendMCPMessage(message) {
-    const response = await fetch('http://127.0.0.1:8000/messages/', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(message)
-    });
-    return response.json();
-}
+```bash
+export COURTLISTENER_ENABLED=true
+export COURTLISTENER_API_TOKEN="your-token-here"   # https://www.courtlistener.com/profile/api/
+python main.py
 ```
 
-## 🔧 Component Details
+### PACER (federal court records) — paid, off by default
 
-### Core Components
+PACER uses a two‑step flow described in the
+[PACER Authentication API User Guide](https://pacer.uscourts.gov/help/pacer/pacer-authentication-api-user-guide):
 
-#### `utils.py` - Legal Data Management (In Development)
-- `LegalDataManager`: Central data access class for legal materials
-- `CitationParser`: Citation extraction and normalization utilities
-- JSON/XML legal document loading and caching
-- Cross-referencing and citation relationship mapping
-- **Status**: Schema-first design, core utilities in active development
+1. **Authenticate** — `POST {auth}/services/cso-auth` with your `loginId` and
+   `password` (and optional client code / TOTP passcode). Returns a
+   `nextGenCSO` token.
+2. **Search** — reuse the `nextGenCSO` token as a cookie against the PACER
+   Case Locator (PCL) API.
 
-#### `main.py` - Server Entry Point
-- FastMCP server initialization
-- Component registration orchestration
-- SSE transport configuration
-- Startup logging and diagnostics
-- Audit logging for legal workflow compliance
+Per PACER guidance the token is **reused** across requests (the client caches
+it); it does not re‑authenticate on every call.
 
-### Tool Modules
+| Variable | Default | Description |
+| --- | --- | --- |
+| `PACER_ENABLED` | `false` | Feature flag to enable the integration |
+| `PACER_ENVIRONMENT` | `qa` | `qa` (non‑billable test) or `production` (billable) |
+| `PACER_LOGIN_ID` | _(unset)_ | PACER username |
+| `PACER_PASSWORD` | _(unset)_ | PACER password |
+| `PACER_CLIENT_CODE` | _(unset)_ | Optional client/billing code |
+| `PACER_OTP_SECRET` | _(unset)_ | Optional base32 TOTP secret if 2FA is enabled |
 
-Each tool module follows a consistent pattern:
+```bash
+export PACER_ENABLED=true
+export PACER_ENVIRONMENT=qa          # start with the non-billable QA env
+export PACER_LOGIN_ID="your-username"
+export PACER_PASSWORD="your-password"
+python main.py
+```
+
+> Register for a **non‑billable QA account** at
+> [qa-pacer.uscourts.gov](https://qa-pacer.uscourts.gov) to test safely.
+> Production accounts are billable. See the
+> [developer resources](https://pacer.uscourts.gov/file-case/developer-resources).
+
+Copy [`.env.example`](.env.example) to `.env` for a template of all settings.
+
+---
+
+## 🐳 Docker (optional)
+
+```bash
+# Build and run over SSE at http://localhost:8000/sse
+docker compose up --build
+```
+
+Enable integrations by exporting variables (or using a `.env` file next to
+`docker-compose.yml`) before `docker compose up`:
+
+```bash
+COURTLISTENER_ENABLED=true COURTLISTENER_API_TOKEN=... docker compose up --build
+```
+
+Or with plain Docker:
+
+```bash
+docker build -t legal-mcp .
+docker run --rm -p 8000:8000 \
+  -e COURTLISTENER_ENABLED=true -e COURTLISTENER_API_TOKEN=... \
+  legal-mcp
+```
+
+---
+
+## 🍴 Forking & building your own (LLM‑friendly)
+
+This project is designed to be forked and extended, including by AI coding
+assistants:
+
+- **Predictable structure.** Tools live in `tools/`, resources in
+  `resources/`, prompts in `prompts/`, integrations in `integrations/`, and
+  all seed data in `data/`. Each module exposes a `register_*` function and is
+  wired up centrally (`tools/__init__.py`, `resources/__init__.py`,
+  `prompts/__init__.py`).
+- **Deterministic + offline by default.** No hidden network calls; live
+  sources are opt‑in.
+- **[`AGENTS.md`](AGENTS.md)** documents how to run, test, and extend the
+  server so an agent can navigate the repo quickly.
+
+### Add a new tool
+
 ```python
-def register_[category]_tools(mcp: FastMCP):
-    """Register all [category] tools with the MCP server"""
-    
+# tools/my_tools.py
+import json
+from utils import audit, get_data_manager
+
+def register_my_tools(mcp):
+    data = get_data_manager()
+
     @mcp.tool()
-    def tool_function(parameters) -> str:
-        """Tool description with clear legal intent"""
-        # Implementation with audit trail
-        return json.dumps(result, indent=2)
+    def my_tool(param: str) -> str:
+        """Describe the legal intent clearly."""
+        audit("my_tool", param=param)
+        return json.dumps({"result": param}, indent=2)
 ```
 
-**Status**: Tool signatures defined, implementations in active iteration.
+Then call `register_my_tools(mcp)` from `tools/__init__.py`. Resources and
+prompts follow the same pattern with `@mcp.resource(uri)` and `@mcp.prompt()`.
 
-### Resource Modules
+---
 
-Resources are organized by legal domain for audit-friendly access:
+## 🏗️ Architecture
 
-#### Case Resources (`case_resources.py`) - TBD
-- Case law precedent retrieval
-- Jurisdictional filtering
-- Citation-based case lookup
-
-#### Statute Resources (`statute_resources.py`) - TBD
-- Statutory text extraction
-- Legislative history context
-- Amendment tracking
-
-#### Contract Resources (`contract_resources.py`) - Seed Data Available
-- Contract templates and frameworks
-- Standard clause library
-- Contract analysis results
-
-#### Brief Resources (`brief_resources.py`) - Seed Data Available
-- Brief outline templates
-- Argument structure frameworks
-- Authority integration patterns
-
-Each module follows a consistent pattern:
-```python
-def register_[domain]_resources(mcp: FastMCP):
-    """Register all [domain] resources with the MCP server"""
-    
-    @mcp.resource("legal://resource-name")
-    def resource_function() -> str:
-        """Resource description with provenance tracking"""
-        return json.dumps(data, indent=2)
+```
+legal-mcp/
+├── main.py                 # FastMCP server entry point (exposes `mcp`)
+├── utils.py                # LegalDataManager + CitationParser + audit log
+├── tools/                  # MCP tools (research, citation, contract, brief, integrations)
+├── resources/              # MCP resources (case, statute, contract, brief, integrations)
+├── prompts/                # MCP prompts (research, drafting, analysis, argument)
+├── integrations/           # Optional live sources (config, courtlistener, pacer)
+├── data/                   # Seed data (cases, statutes, contracts, templates, citations)
+├── tests/                  # Unit + integration tests
+├── Dockerfile              # Optional container image
+├── docker-compose.yml      # Optional compose setup
+└── requirements.txt        # Dependencies
 ```
 
-### Prompt Templates
+The server initializes a `FastMCP` instance, registers all tools, resources,
+and prompts, logs an audit trail, and runs the selected transport.
 
-Prompts guide structured legal analysis with audit-friendly deterministic scaffolds:
-```python
-@mcp.prompt()
-def analysis_prompt(param: str = "default") -> str:
-    """Legal analysis prompt with clear reasoning framework"""
-    return f"""
-    Structured analysis instructions for {param}...
-    No hidden network calls - pure reasoning frames.
-    """
-```
+---
 
-**Status**: Prompt frameworks defined, templates under partner review.
-
-## 📊 Data Structure
-
-The server operates on structured legal data (selective disclosure):
-
-- **Case Database**: TBD - Precedent index with citation graph
-- **Statute Library**: TBD - Statutory materials with amendment tracking
-- **Contract Templates**: Seed data - Standard agreements and clauses
-- **Brief Frameworks**: Seed data - Outline templates and argument structures
-- **Citation Standards**: Seed data - Bluebook and jurisdiction-specific rules
-
-**Note**: Schema stability prioritized before data expansion.
-
-## 🔍 Usage Examples
-
-### MCP Client Examples (Planned Workflows)
-
-For proper MCP client integration, use the MCP protocol with the correct endpoints:
+## 🧪 Testing, linting & types
 
 ```bash
-# Establish SSE connection (listen for server messages)
-curl -N http://127.0.0.1:8000/sse
-
-# Send MCP messages (in a separate terminal)
-# Search case precedents (Coming Soon)
-curl -X POST http://127.0.0.1:8000/messages/ \
-  -H "Content-Type: application/json" \
-  -d '{"jsonrpc": "2.0", "id": 1, "method": "tools/call", "params": {"name": "search_precedents", "arguments": {"query": "contract breach", "jurisdiction": "CA"}}}'
-
-# Validate citation (Planned)
-curl -X POST http://127.0.0.1:8000/messages/ \
-  -H "Content-Type: application/json" \
-  -d '{"jsonrpc": "2.0", "id": 2, "method": "tools/call", "params": {"name": "validate_citation", "arguments": {"citation": "123 F.3d 456"}}}'
-
-# Get contract templates (Seed Data Available)
-curl -X POST http://127.0.0.1:8000/messages/ \
-  -H "Content-Type: application/json" \
-  -d '{"jsonrpc": "2.0", "id": 3, "method": "resources/read", "params": {"uri": "legal://contract-templates"}}'
-
-# Analyze contract clauses (In Development)
-curl -X POST http://127.0.0.1:8000/messages/ \
-  -H "Content-Type: application/json" \
-  -d '{"jsonrpc": "2.0", "id": 4, "method": "tools/call", "params": {"name": "compare_contracts", "arguments": {"contract_a": "NDA_v1", "contract_b": "NDA_v2"}}}'
-```
-
-## 🧪 Testing
-
-**Status**: Test infrastructure planned, core test patterns being established with partner cohort.
-
-### Test Structure (Planned)
-
-```
-tests/
-├── conftest.py              # Pytest configuration and shared fixtures
-├── unit/                    # Unit tests for core components
-│   ├── test_utils.py        # LegalDataManager and CitationParser tests
-│   └── test_*.py            # Additional unit tests
-├── integration/             # Integration tests for MCP components
-│   ├── test_research_tools.py    # Legal research tools tests
-│   ├── test_citation_tools.py    # Citation validation tests
-│   ├── test_contract_tools.py    # Contract analysis tests
-│   ├── test_resources.py         # Resource endpoint tests
-│   └── test_prompts.py           # Prompt template tests
-└── __init__.py
-```
-
-### Test Categories (In Development)
-
-#### Unit Tests (`tests/unit/`) - Coming Soon
-- **Data Manager Tests**: Core legal data handling functionality
-- **Citation Parser Tests**: Citation extraction and validation logic
-- **Utility Functions**: Helper functions and data validation
-
-#### Integration Tests (`tests/integration/`) - Planned
-- **Research Tools**: Case search, precedent retrieval, statute extraction
-- **Citation Tools**: Citation validation, normalization, cross-referencing
-- **Contract Tools**: Contract analysis, clause differ, risk identification
-- **Brief Tools**: Outline generation, argument scaffolding
-- **Resources**: Static resources and dynamic templates
-- **Prompts**: Template generation and legal reasoning frameworks
-
-### Running Tests (When Available)
-
-#### Prerequisites
-```bash
-# Install testing dependencies
 pip install -r requirements.txt
+
+pytest                 # run the full unit + integration suite
+pytest --cov=. --cov-report=term-missing
+
+python -m black .      # format
+python -m flake8 .     # lint
+python -m mypy .       # type-check
 ```
 
-#### Quick Test Commands (Planned)
-```bash
-# Run all tests
-pytest
+Integration tests exercise tools, resources, and prompts through the
+in‑memory FastMCP API. The live integrations are tested with an
+`httpx.MockTransport` so **no real network calls** are made.
 
-# Run with coverage report
-pytest --cov=. --cov-report=html
+> If the `pytest`, `black`, etc. scripts are not on your `PATH` after a
+> `pip install --user`, invoke them via `python -m <tool>` as shown above.
 
-# Run specific test categories
-pytest tests/unit/                    # Unit tests only
-pytest tests/integration/             # Integration tests only
-```
+---
 
-### Test Data Validation (Planned)
+## 🔐 Legal & compliance notes
 
-The test suite will validate:
-- ✅ Citation parsing and normalization accuracy
-- ✅ Contract clause extraction and comparison logic
-- ✅ Brief outline generation conformance
-- ✅ Resource endpoints return valid, auditable JSON
-- ✅ Prompt templates generate proper legal reasoning frameworks
-- ✅ Error handling for missing or malformed legal data
-- ✅ Audit trail integrity for all operations
-- ✅ Schema conformance across all components
+- **Audit trails.** Every tool/resource call emits a structured audit log
+  entry (`utils.audit`).
+- **Deterministic core.** Local data operations are reproducible and make no
+  hidden network calls.
+- **Opt‑in external data.** PACER and CourtListener are disabled until you
+  enable them; PACER may incur fees.
+- **Not legal advice.** Output is a scaffold for attorney review.
 
-**Note**: Test development gated by schema stability and partner feedback.
+## 📖 Further reading
 
-## 🛠️ Development
-
-### Adding New Tools
-1. Choose appropriate category in `tools/`
-2. Add tool function with `@mcp.tool()` decorator
-3. Include audit logging and provenance tracking
-4. Register in the category's `register_*_tools()` function
-5. Import and call registration in `main.py`
-6. **Add Tests**: Create corresponding tests when test infrastructure is ready
-7. **Partner Review**: Submit for cohort validation before broader deployment
-
-### Adding New Resources
-1. Choose appropriate domain module in `resources/` (case, statute, contract, brief)
-2. Add resource function with `@mcp.resource()` decorator and URI pattern
-3. Include data provenance and update timestamps
-4. Register in the domain's `register_*_resources()` function
-5. Import and call registration in `main.py`
-6. **Add Tests**: Include resource tests when infrastructure is ready
-7. **Schema Validation**: Ensure conformance to established legal data schemas
-
-### Adding New Prompts
-1. Choose appropriate category in `prompts/` (research, drafting, analysis, argument)
-2. Add prompt function with `@mcp.prompt()` decorator
-3. Include parameter defaults and comprehensive legal reasoning instructions
-4. Ensure deterministic output (no hidden network calls)
-5. Register in the category's `register_*_prompts()` function
-6. **Add Tests**: Include prompt tests when infrastructure is ready
-7. **Partner Review**: Validate reasoning frameworks with legal experts
-
-### Adding New Prompt Categories
-1. Create new file in `prompts/` directory (e.g., `prompts/discovery_prompts.py`)
-2. Follow the existing pattern with `register_discovery_prompts(mcp)` function
-3. Import and register in `prompts/__init__.py`
-4. **Add Tests**: Create corresponding test fixtures and test methods
-5. **Schema Definition**: Document expected inputs and outputs
-
-## 🔄 Benefits of SSE Transport
-
-- **Web Compatible**: Direct browser integration for legal web applications
-- **Real-time**: Server-sent events for live legal research updates
-- **HTTP Standard**: Works with standard HTTP tools and corporate firewalls
-- **Firewall Friendly**: Uses standard HTTP port (critical for law firm IT environments)
-- **Scalable**: Supports multiple concurrent paralegal/attorney connections
-- **Audit-Friendly**: All requests logged via standard HTTP access logs
-
-## 🗺️ Roadmap
-
-### Phase 1: Foundation (Current)
-- ✅ Core MCP server architecture
-- ✅ SSE transport implementation
-- ✅ Seed data for contract templates and brief frameworks
-- 🔄 Schema stabilization with partner cohort
-- 🔄 Citation parser core utilities
-
-### Phase 2: Research Capabilities (Q1 2025 - Planned)
-- 📋 CourtListener/RECAP adapter as preferred free research source (PACER opt-in only)
-- 📋 Multi-source precedent retrieval adapters
-- 📋 Statute excerpt extraction and context
-- 📋 Citation validation and normalization
-- 📋 Basic case law search functionality
-
-### Phase 3: Analysis & Drafting (Q2 2025 - Planned)
-- 📋 Contract clause differ with risk identification
-- 📋 Brief scaffolding and outline generation
-- 📋 Argument structure templates
-- 📋 Enhanced citation integrity tools
-
-### Phase 4: Expansion (TBD)
-- 📋 Jurisdictional filtering enhancements
-- 📋 Legislative history tracking
-- 📋 Multi-document analysis workflows
-- 📋 Advanced audit and compliance features
-
-**Note**: Roadmap subject to change based on partner feedback and schema maturity.
+- [Model Context Protocol](https://modelcontextprotocol.io)
+- [CourtListener API](https://www.courtlistener.com/help/api/rest/) ·
+  [RECAP](https://free.law/recap/)
+- [PACER developer resources](https://pacer.uscourts.gov/file-case/developer-resources)
 
 ## 📝 License
 
-This project is licensed under the MIT License.
-
-## 🤝 Contributing
-
-**Status**: Currently in closed partner cohort phase. Public contributions will be welcomed after schema stabilization.
-
-For partner cohort members:
-1. Review current schemas and design patterns
-2. Provide feedback on tool definitions and workflows
-3. Test with real-world legal workflow scenarios
-4. Report edge cases and audit requirements
-5. Follow established coding patterns and audit trail requirements
-
-## 🔐 Legal & Compliance Considerations
-
-This MCP server is designed with legal workflow compliance in mind:
-
-- **Audit Trails**: All operations logged with timestamps and provenance
-- **Data Provenance**: Clear source attribution for all legal materials
-- **Schema-First Design**: Predictable, inspectable outputs for legal review
-- **No Hidden Operations**: Deterministic reasoning frames, no undisclosed network calls
-- **Selective Disclosure**: Sensitive implementations kept confidential during development
-- **Third-Party Database Costs**: Research tools may integrate with fee-based services (e.g., PACER). Users must understand their account type, quarterly limits, and billing before enabling automated or agent-driven research.
-
-**Important**: This server provides legal workflow augmentation tools. It does not provide legal advice and does not replace attorney review and judgment.
-
----
-
-## 📖 Further Reading
-
-For more information about MCP architecture and legal AI applications:
-
-**[🔌 MCP Servers - Model Context Protocol Implementation](https://edwin.genego.io/ai/mcp-servers)**
-
-Topics covered:
-- Understanding MCP Servers and their business impact
-- Architecture patterns for professional services
-- Legal workflow automation considerations
-- Security and audit requirements
-- Compliance-friendly AI integration
-
----
-
-*Built with the Model Context Protocol (MCP) for verifiable legal workflow augmentation*
-
-**Status**: Experimental - Iterating with partner cohort - Schema-first, selective disclosure
+MIT.
