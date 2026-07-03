@@ -1,22 +1,21 @@
-# Legal Research & Paralegal MCP Server Dependencies
-# TODO: Add specific package versions and dependencies
+# Legal Research & Paralegal MCP Server dependencies
+# Install with: pip install -r requirements.txt
 
-# Core MCP dependencies
-# fastmcp
-# pydantic
-# uvicorn
+# --- Core (runtime) ---
+# The official Model Context Protocol SDK, including FastMCP and the
+# `mcp` CLI (which bundles the MCP Inspector integration).
+mcp[cli]>=1.28.0
 
-# Legal data processing
-# lxml
-# beautifulsoup4
-# requests
+# HTTP client for the optional CourtListener / PACER integrations
+# (also pulled in transitively by mcp; pinned here as a direct dep).
+httpx>=0.28
 
-# Testing dependencies
-# pytest
-# pytest-cov
-# pytest-asyncio
+# --- Development & testing ---
+pytest>=9.0
+pytest-asyncio>=1.0
+pytest-cov>=7.0
 
-# Development dependencies
-# black
-# flake8
-# mypy
+# --- Linting & type checking ---
+black>=26.0
+flake8>=7.0
+mypy>=2.0

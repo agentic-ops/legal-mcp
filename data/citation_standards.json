@@ -1,0 +1,41 @@
+{
+  "format": "bluebook",
+  "description": "Simplified Bluebook-style reference data for citation validation and normalization. For instructional/demo use; not a substitute for the official Bluebook.",
+  "reporters": {
+    "U.S.": {"name": "United States Reports", "court": "Supreme Court of the United States"},
+    "S. Ct.": {"name": "Supreme Court Reporter", "court": "Supreme Court of the United States"},
+    "F.": {"name": "Federal Reporter", "court": "U.S. Courts of Appeals"},
+    "F.2d": {"name": "Federal Reporter, Second Series", "court": "U.S. Courts of Appeals"},
+    "F.3d": {"name": "Federal Reporter, Third Series", "court": "U.S. Courts of Appeals"},
+    "F. Supp.": {"name": "Federal Supplement", "court": "U.S. District Courts"},
+    "F. Supp. 2d": {"name": "Federal Supplement, Second Series", "court": "U.S. District Courts"},
+    "F. Supp. 3d": {"name": "Federal Supplement, Third Series", "court": "U.S. District Courts"},
+    "Cal.4th": {"name": "California Reports, Fourth Series", "court": "California Supreme Court"},
+    "Cal.5th": {"name": "California Reports, Fifth Series", "court": "California Supreme Court"},
+    "Cal.App.4th": {"name": "California Appellate Reports, Fourth Series", "court": "California Court of Appeal"},
+    "Cal.App.5th": {"name": "California Appellate Reports, Fifth Series", "court": "California Court of Appeal"},
+    "Eng. Rep.": {"name": "English Reports", "court": "English courts (historical)"}
+  },
+  "case_name_abbreviations": {
+    "Corporation": "Corp.",
+    "Incorporated": "Inc.",
+    "Industries": "Indus.",
+    "Solutions": "Sols.",
+    "Company": "Co.",
+    "Limited": "Ltd.",
+    "Association": "Ass'n",
+    "Brothers": "Bros.",
+    "Manufacturing": "Mfg.",
+    "National": "Nat'l",
+    "International": "Int'l",
+    "Technologies": "Techs.",
+    "Systems": "Sys."
+  },
+  "court_abbreviations": {
+    "Cal.App.4th": "California Court of Appeal, Fourth District",
+    "Cal.App.5th": "California Court of Appeal, Fifth District",
+    "Cal.4th": "California Supreme Court",
+    "Cal.5th": "California Supreme Court",
+    "U.S.": "Supreme Court of the United States"
+  }
+}
