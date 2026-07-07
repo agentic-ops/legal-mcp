@@ -19,6 +19,7 @@ Legal Team → AI Assistant → MCP Server → Tools/Resources/Prompts → Respo
 - [Real Document Analysis & Metadata Extraction Workflow](#real-document-analysis--metadata-extraction-workflow)
 - [Privilege Risk Check Workflow](#privilege-risk-check-workflow)
 - [Async Analysis Queue Workflow](#async-analysis-queue-workflow)
+- [Built on these workflows — Legal Terminal (showcase)](#-built-on-these-workflows--legal-terminal-showcase)
 
 ---
 
@@ -976,6 +977,52 @@ you can check status and pull results whenever you're ready."
 > service — nothing leaves your machine, and no attorney workload is created.
 > For professional attorney review of flagged documents, contact
 > [edwin@genego.io](mailto:edwin@genego.io).
+
+---
+
+## 🖥 Built on these workflows — Legal Terminal (showcase)
+
+The workflows above describe how an **AI assistant** chains MCP tools on behalf
+of a legal team. **[Legal Terminal](https://github.com/genego-io/legal-terminal)**
+is a reference **showcase** that implements the same patterns in a dedicated
+product UI — a Bloomberg-style, keyboard-first workstation with a React web
+terminal and a Python TUI, both calling the same 27 tools this server exposes.
+
+| | |
+| --- | --- |
+| **Live demo** | [legal-terminal.up.railway.app](https://legal-terminal.up.railway.app/) — mock mode by default; explore panels without a backend |
+| **Source** | [github.com/genego-io/legal-terminal](https://github.com/genego-io/legal-terminal) — showcase repo; proprietary license (viewing for evaluation) |
+
+The demo ships with a `MockClient` and fixture data so every panel works
+offline. Toggle **Live** in the status bar (or wire up `LiveClient` in the
+repo) to connect to a running `legal-mcp` instance over SSE and run the real
+tool calls described in the workflows below.
+
+### How each workflow maps to the terminal
+
+| Workflow in this doc | Legal Terminal panel | Key MCP tools |
+| --- | --- | --- |
+| [Contract Analysis](#contract-analysis-workflow) | `CTRX` — Contract Workbench | `compare_contracts`, `analyze_clauses`, `suggest_clause_alternatives` |
+| [Legal Research](#legal-research-workflow) | `PREC` — Precedent Search; `CHAT` — Paralegal | `search_precedents`, `search_case_law`, `research_legal_issue` |
+| [Brief Drafting](#brief-drafting-workflow) | `BRF` — Brief Builder | `generate_brief_outline`, `create_argument_structure`, `generate_issue_statement` |
+| [Citation Validation](#citation-validation-workflow) | `CITE` — Citation Console | `validate_citation`, `normalize_citation`, `verify_citation_integrity` |
+| [Statute Analysis](#statute-analysis-workflow) | `STAT` — Statute Viewer | `extract_statute` |
+| [Negotiation Guide](#negotiation-guide-workflow) | `CTRX` — Contract Workbench | `generate_negotiation_guide`, `analyze_clauses` |
+| [Real Document Analysis & Metadata](#real-document-analysis--metadata-extraction-workflow) | `DOCA` — Document Analyzer | `analyze_document`, `extract_contract_metadata`, `export_analysis_report` |
+| [Privilege Risk Check](#privilege-risk-check-workflow) | `PRIV` — Privilege Check; `CONF` — Privacy Settings | `check_privilege_risk` |
+| [Async Analysis Queue](#async-analysis-queue-workflow) | `JOBS` — Analysis Queue | `queue_document_analysis`, `get_analysis_status`, `get_analysis_result`, `list_analysis_jobs` |
+
+Additional panels surface cross-cutting concerns from this server:
+
+- **`WKFL`** — runs the [`legal-mcp-toolkit`](.agents/skills/legal-mcp-toolkit/SKILL.md) workflow playbooks as checklists (the same sequences an AI assistant would follow in the steps above).
+- **`LIVE`** — `integration_status` for CourtListener and PACER.
+- **`AUDT`** — local audit log mirroring `utils.audit` from every tool invocation.
+
+Legal Terminal is maintained separately as a **showcase** (not part of this
+repo). Use it to study how multi-step MCP workflows become panel UX, command-bar
+mnemonics (`PREC breach of contract`, `CITE 2022 Cal.App.4th 1234`), and
+mock/live client patterns; extend **this** repo when you need new tools or
+data.
 
 ---
 
