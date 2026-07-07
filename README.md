@@ -23,6 +23,7 @@ inspectable, deterministic local data and optional (opt‑in) live legal databas
 - [Live integrations (PACER & CourtListener/RECAP)](#-live-integrations-pacer--courtlistenerrecap)
 - [Docker (optional)](#-docker-optional)
 - [Use as an Agent Skill (Claude, Cursor, Codex, and more)](#-use-as-an-agent-skill-claude-cursor-codex-and-more)
+- [Built on legal-mcp (showcase)](#-built-on-legal-mcp--legal-terminal-showcase)
 - [Forking & building your own](#-forking--building-your-own-llm-friendly)
 - [Architecture](#-architecture)
 - [Testing, linting & types](#-testing-linting--types)
@@ -381,6 +382,51 @@ with this server connected knows how to combine tools instead of guessing.
 
 See the [Agent Skills specification](https://agentskills.io/specification.md)
 for the full open standard this skill follows.
+
+---
+
+## 🖥 Built on legal-mcp — Legal Terminal (showcase)
+
+Want to see what a full product looks like on top of this MCP server? **[Legal
+Terminal](https://github.com/genego-io/legal-terminal)** is a reference
+**showcase** application — a Bloomberg-style, keyboard-first legal workstation
+with two front ends (a React web terminal and a Python TUI) that call the same
+27 tools this server exposes.
+
+| | |
+| --- | --- |
+| **Live demo** | [legal-terminal.up.railway.app](https://legal-terminal.up.railway.app/) — runs in mock mode by default; no backend required |
+| **Source** | [github.com/genego-io/legal-terminal](https://github.com/genego-io/legal-terminal) — viewing for evaluation; proprietary license (not AGPL) |
+
+The demo is intentionally **mock-ready**: panels work offline with fixture
+data so you can explore the UX immediately. Toggle **Live** in the status bar
+(or wire up `LiveClient` in the repo) to connect to a running `legal-mcp`
+instance over SSE and exercise real tool calls.
+
+**What it demonstrates**
+
+- **Multi-panel workflows** — precedent search (`PREC`), statute viewer
+  (`STAT`), citation console (`CITE`), contract workbench (`CTRX`), document
+  analyzer (`DOCA`), privilege check (`PRIV`), brief builder (`BRF`), analysis
+  queue (`JOBS`), integration status (`LIVE`), and more — each mapped to MCP
+  tools by name.
+- **Paralegal chat (F1)** — conversational layer over
+  `research_legal_issue`, `validate_citation`, `generate_brief_outline`, and
+  related tools.
+- **Agent Skill in the UI** — the `WKFL` panel surfaces the same
+  [`legal-mcp-toolkit`](.agents/skills/legal-mcp-toolkit/SKILL.md) workflow
+  playbooks as runnable checklists.
+- **Privacy posture** — `CONF` (Confidential Mode) and `PRIV` panels illustrate
+  routing sensitive matter data through `check_privilege_risk` and local-only
+  inference options.
+- **Keyboard-first UX** — Ctrl+K command palette, mnemonic command bar
+  (`PREC breach of contract`, `CITE 2022 Cal.App.4th 1234`), and F-key module
+  shortcuts — the kind of density-focused interface you can build once tools
+  are standardized behind MCP.
+
+Legal Terminal is maintained separately as a **showcase** (not a submodule of
+this repo). Clone it to study client architecture, panel design, and mock/live
+client patterns; fork **this** repo to extend the MCP server itself.
 
 ---
 
