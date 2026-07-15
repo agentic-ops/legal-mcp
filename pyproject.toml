@@ -1,10 +1,11 @@
 [project]
 name = "legal-mcp"
-version = "1.0.0"
+version = "1.0.1"
 description = "Legal Research & Paralegal MCP Server - structured legal workflow tools over the Model Context Protocol."
 readme = "README.md"
 requires-python = ">=3.10"
-license = { text = "MIT" }
+license = "AGPL-3.0-only"
+license-files = ["LICENSE"]
 dependencies = [
     "mcp[cli]>=1.28.0",
     "httpx>=0.28",
