@@ -35,4 +35,7 @@ class TestFeatureFlagRegistration:
         payload = await read_resource_json(server, "legal://server-config")
         assert payload["enabled_categories"]["privilege"] is False
         assert "privilege" in payload["disabled_categories"]
-        assert payload["environment_variables"]["privilege"] == "LEGAL_MCP_ENABLE_PRIVILEGE"
+        assert (
+            payload["environment_variables"]["privilege"]
+            == "LEGAL_MCP_ENABLE_PRIVILEGE"
+        )

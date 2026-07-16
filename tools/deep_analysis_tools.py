@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json
-from typing import Optional
+from typing import Any, Optional
 
 from mcp import types
 from mcp.server.fastmcp import Context
@@ -48,7 +48,7 @@ def register_deep_analysis_tools(mcp) -> None:
     async def deep_analyze_clause(
         clause_text: str,
         clause_type: str = "general",
-        ctx: Context = None,
+        ctx: Optional[Context] = None,
     ) -> str:
         """Run keyword heuristics, then ask the connected client's LLM for deeper
         reasoning via MCP sampling. Falls back to heuristic-only output when the
@@ -57,18 +57,20 @@ def register_deep_analysis_tools(mcp) -> None:
         heuristic = assess_clause_risk(clause_text)
 
         supports_sampling = False
+        session: Any = None
         if ctx is not None:
             try:
-                supports_sampling = ctx.session.check_client_capability(
+                session = ctx.session
+                supports_sampling = session.check_client_capability(
                     _SAMPLING_CAPABILITY
                 )
             except ValueError:
                 supports_sampling = False
-        if not supports_sampling:
+        if session is None or not supports_sampling:
             return _heuristic_only_payload(clause_text, clause_type, heuristic)
 
         try:
-            result = await ctx.session.create_message(
+            result = await session.create_message(
                 messages=[
                     types.SamplingMessage(
                         role="user",

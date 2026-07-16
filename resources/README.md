@@ -1,7 +1,10 @@
 # resources/
 
 MCP resource implementations — static and queryable data endpoints exposed as `legal://` URIs.
-Resources are read-only views over the seed data in `data/`; they do not mutate state.
+Resources are read-only. Bundled case, statute, and contract resources require
+explicit `LEGAL_MCP_DEMO_MODE=true`; otherwise they remain registered and
+return `demo_data_disabled`. Citation standards and brief frameworks remain
+available in production mode.
 Every handler returns a `json.dumps(..., indent=2)` string and calls `audit(...)`.
 
 ## Modules and URI schemes
@@ -23,8 +26,10 @@ It returns the enabled/disabled state of every tool category so clients can disc
 Use it to audit the server configuration at runtime:
 
 ```
-legal://server-config  →  { "categories": { "research": true, "citation": true, ... } }
+legal://server-config  →  { "demo_mode": false, "enabled_categories": { ... } }
 ```
+
+The response also reports the `LEGAL_MCP_DEMO_MODE` environment-variable name.
 
 ## Registration
 

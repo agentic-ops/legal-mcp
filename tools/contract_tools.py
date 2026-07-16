@@ -11,6 +11,7 @@ from __future__ import annotations
 import json
 from typing import Any, Dict, List, Optional
 
+from demo_mode import demo_data_disabled_payload, demo_payload
 from tools.risk_helpers import assess_clause_risk, find_missing_clauses
 from utils import audit, get_data_manager
 
@@ -145,20 +146,27 @@ FALLBACK_ALTERNATIVES: List[Dict[str, str]] = [
     },
 ]
 
-DISCLAIMER = (
-    "AI-generated suggestions for attorney review only. Not legal advice."
-)
+DISCLAIMER = "AI-generated suggestions for attorney review only. Not legal advice."
 
 POSITION_MATRIX: Dict[tuple, tuple] = {
-    ("HIGH", "buyer"):   ("reject",    "High-risk clause favors seller; seek mutual cap or deletion."),
-    ("HIGH", "seller"):  ("negotiate", "High-risk clause; confirm scope is intentional."),
-    ("HIGH", "mutual"):  ("negotiate", "High-risk; seek cap and carve-outs."),
+    ("HIGH", "buyer"): (
+        "reject",
+        "High-risk clause favors seller; seek mutual cap or deletion.",
+    ),
+    ("HIGH", "seller"): (
+        "negotiate",
+        "High-risk clause; confirm scope is intentional.",
+    ),
+    ("HIGH", "mutual"): ("negotiate", "High-risk; seek cap and carve-outs."),
     ("MEDIUM", "buyer"): ("negotiate", "Review and narrow scope before accepting."),
-    ("MEDIUM", "seller"):("negotiate", "Confirm terms align with your risk tolerance."),
-    ("MEDIUM", "mutual"):("negotiate", "Standard negotiation point."),
-    ("LOW", "buyer"):    ("accept",    "Standard market language."),
-    ("LOW", "seller"):   ("accept",    "Standard market language."),
-    ("LOW", "mutual"):   ("accept",    "Standard market language."),
+    ("MEDIUM", "seller"): (
+        "negotiate",
+        "Confirm terms align with your risk tolerance.",
+    ),
+    ("MEDIUM", "mutual"): ("negotiate", "Standard negotiation point."),
+    ("LOW", "buyer"): ("accept", "Standard market language."),
+    ("LOW", "seller"): ("accept", "Standard market language."),
+    ("LOW", "mutual"): ("accept", "Standard market language."),
 }
 
 
@@ -167,10 +175,24 @@ def register_contract_tools(mcp) -> None:
 
     data = get_data_manager()
 
+    def demo_contracts_unavailable(capability: str) -> str:
+        return json.dumps(
+            demo_data_disabled_payload(
+                capability,
+                [
+                    "Use document tools with a user-supplied contract.",
+                    "Set LEGAL_MCP_DEMO_MODE=true only for demonstrations or testing.",
+                ],
+            ),
+            indent=2,
+        )
+
     @mcp.tool()
     def compare_contracts(contract_a: str, contract_b: str) -> str:
         """Compare two contracts and identify clause-level differences."""
         audit("compare_contracts", contract_a=contract_a, contract_b=contract_b)
+        if not data.demo_mode:
+            return demo_contracts_unavailable("Bundled contract comparison")
         a = data.get_contract(contract_a)
         b = data.get_contract(contract_b)
         missing = [
@@ -180,7 +202,7 @@ def register_contract_tools(mcp) -> None:
         ]
         if missing or a is None or b is None:
             return json.dumps(
-                {"error": "Contract(s) not found.", "missing": missing},
+                demo_payload(error="Contract(s) not found.", missing=missing),
                 indent=2,
             )
 
@@ -226,16 +248,18 @@ def register_contract_tools(mcp) -> None:
             "difference_count": len(differences),
             "differences": differences,
         }
-        return json.dumps(result, indent=2)
+        return json.dumps(demo_payload(**result), indent=2)
 
     @mcp.tool()
     def analyze_clauses(contract_id: str, clause_type: Optional[str] = None) -> str:
         """Analyze contract clauses and identify risks."""
         audit("analyze_clauses", contract_id=contract_id, clause_type=clause_type)
+        if not data.demo_mode:
+            return demo_contracts_unavailable("Bundled contract clause analysis")
         contract = data.get_contract(contract_id)
         if contract is None:
             return json.dumps(
-                {"contract_id": contract_id, "error": "Contract not found."},
+                demo_payload(contract_id=contract_id, error="Contract not found."),
                 indent=2,
             )
         clauses: Dict[str, str] = contract.get("clauses", {})
@@ -264,16 +288,18 @@ def register_contract_tools(mcp) -> None:
                 clauses.keys(),
                 contract.get("type"),
             )
-        return json.dumps(result, indent=2)
+        return json.dumps(demo_payload(**result), indent=2)
 
     @mcp.tool()
     def extract_clauses(contract_id: str, template: Optional[str] = None) -> str:
         """Extract clauses from a contract, optionally filtered by template key."""
         audit("extract_clauses", contract_id=contract_id, template=template)
+        if not data.demo_mode:
+            return demo_contracts_unavailable("Bundled contract clause extraction")
         contract = data.get_contract(contract_id)
         if contract is None:
             return json.dumps(
-                {"contract_id": contract_id, "error": "Contract not found."},
+                demo_payload(contract_id=contract_id, error="Contract not found."),
                 indent=2,
             )
         clauses: Dict[str, str] = contract.get("clauses", {})
@@ -286,7 +312,7 @@ def register_contract_tools(mcp) -> None:
             "clause_count": len(clauses),
             "clauses": clauses,
         }
-        return json.dumps(result, indent=2)
+        return json.dumps(demo_payload(**result), indent=2)
 
     @mcp.tool()
     def suggest_clause_alternatives(clause_text: str, clause_type: str) -> str:
@@ -325,21 +351,21 @@ def register_contract_tools(mcp) -> None:
             contract_id=contract_id,
             party_role=party_role,
         )
+        if not data.demo_mode:
+            return demo_contracts_unavailable("Bundled contract negotiation guide")
         role = party_role.strip().lower()
         if role not in ("buyer", "seller", "mutual"):
             return json.dumps(
-                {
-                    "error": (
-                        "party_role must be one of: 'buyer', 'seller', 'mutual'."
-                    )
-                },
+                demo_payload(
+                    error=("party_role must be one of: 'buyer', 'seller', 'mutual'.")
+                ),
                 indent=2,
             )
 
         contract = data.get_contract(contract_id)
         if contract is None:
             return json.dumps(
-                {"contract_id": contract_id, "error": "Contract not found."},
+                demo_payload(contract_id=contract_id, error="Contract not found."),
                 indent=2,
             )
 
@@ -362,7 +388,9 @@ def register_contract_tools(mcp) -> None:
             normalized_name = (
                 clause_name.strip().lower().replace("-", "_").replace(" ", "_")
             )
-            fallback_list = CLAUSE_ALTERNATIVES.get(normalized_name, FALLBACK_ALTERNATIVES)
+            fallback_list = CLAUSE_ALTERNATIVES.get(
+                normalized_name, FALLBACK_ALTERNATIVES
+            )
             fallback_text = fallback_list[0]["text"] if fallback_list else ""
             guide_entries.append(
                 {
@@ -388,4 +416,4 @@ def register_contract_tools(mcp) -> None:
             "disclaimer": DISCLAIMER,
             "notice": "not legal advice",
         }
-        return json.dumps(result, indent=2)
+        return json.dumps(demo_payload(**result), indent=2)

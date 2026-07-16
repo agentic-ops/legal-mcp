@@ -155,12 +155,29 @@ def _build_analysis_report_docx(analysis: Dict[str, Any], output_path: Path) -> 
 
 
 _MONTHS = {
-    "january": 1, "february": 2, "march": 3, "april": 4,
-    "may": 5, "june": 6, "july": 7, "august": 8,
-    "september": 9, "october": 10, "november": 11, "december": 12,
-    "jan": 1, "feb": 2, "mar": 3, "apr": 4,
-    "jun": 6, "jul": 7, "aug": 8,
-    "sep": 9, "oct": 10, "nov": 11, "dec": 12,
+    "january": 1,
+    "february": 2,
+    "march": 3,
+    "april": 4,
+    "may": 5,
+    "june": 6,
+    "july": 7,
+    "august": 8,
+    "september": 9,
+    "october": 10,
+    "november": 11,
+    "december": 12,
+    "jan": 1,
+    "feb": 2,
+    "mar": 3,
+    "apr": 4,
+    "jun": 6,
+    "jul": 7,
+    "aug": 8,
+    "sep": 9,
+    "oct": 10,
+    "nov": 11,
+    "dec": 12,
 }
 
 
@@ -191,7 +208,11 @@ def _extract_metadata_from_text(full_text: str, file_path: str) -> Dict[str, Any
         if iso_match:
             effective_date = raw_date
         else:
-            month_match = re.search(r"(January|February|March|April|May|June|July|August|September|October|November|December)", raw_date, re.IGNORECASE)
+            month_match = re.search(
+                r"(January|February|March|April|May|June|July|August|September|October|November|December)",
+                raw_date,
+                re.IGNORECASE,
+            )
             year_match = re.search(r"(\d{4})", raw_date)
             day_match = re.search(r"\b(\d{1,2})\b", raw_date)
             if month_match and year_match:
@@ -233,9 +254,15 @@ def _extract_metadata_from_text(full_text: str, file_path: str) -> Dict[str, Any
 
     # Auto-renewal
     auto_renewal: Optional[bool] = None
-    if re.search(r"renew\s+automatically|automatic\s+renewal|auto[\s-]renew", full_text, re.IGNORECASE):
+    if re.search(
+        r"renew\s+automatically|automatic\s+renewal|auto[\s-]renew",
+        full_text,
+        re.IGNORECASE,
+    ):
         auto_renewal = True
-    elif re.search(r"does not renew|shall not renew|no automatic renewal", full_text, re.IGNORECASE):
+    elif re.search(
+        r"does not renew|shall not renew|no automatic renewal", full_text, re.IGNORECASE
+    ):
         auto_renewal = False
 
     # Notice period in days
@@ -259,7 +286,9 @@ def _extract_metadata_from_text(full_text: str, file_path: str) -> Dict[str, Any
     )
     if cap_match:
         raw_val = cap_match.group(1).replace(",", "")
-        multiplier_match = re.search(r"\$[\d,]+\s*(million|thousand)", full_text, re.IGNORECASE)
+        multiplier_match = re.search(
+            r"\$[\d,]+\s*(million|thousand)", full_text, re.IGNORECASE
+        )
         multiplier = 1
         if multiplier_match:
             word = multiplier_match.group(1).lower()

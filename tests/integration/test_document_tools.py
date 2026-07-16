@@ -56,7 +56,9 @@ class TestAnalyzeDocument:
         assert "error" in payload
 
     @pytest.mark.asyncio
-    async def test_analyze_document_includes_missing_clauses(self, mcp_server, risky_nda_docx):
+    async def test_analyze_document_includes_missing_clauses(
+        self, mcp_server, risky_nda_docx
+    ):
         payload = await call_tool_json(
             mcp_server,
             "analyze_document",
@@ -84,9 +86,7 @@ class TestAnalyzeDocument:
         assert "liab" in payload["missing_clauses"]
 
     @pytest.mark.asyncio
-    async def test_analyze_document_unsupported_format(
-        self, mcp_server, tmp_path
-    ):
+    async def test_analyze_document_unsupported_format(self, mcp_server, tmp_path):
         pdf_path = tmp_path / "sample.pdf"
         pdf_path.write_bytes(b"%PDF-1.4")
         payload = await call_tool_json(
@@ -140,9 +140,7 @@ class TestCompareDocuments:
 
 class TestExportAnalysisReport:
     @pytest.mark.asyncio
-    async def test_export_creates_docx_file(
-        self, mcp_server, risky_nda_docx, tmp_path
-    ):
+    async def test_export_creates_docx_file(self, mcp_server, risky_nda_docx, tmp_path):
         analysis = await call_tool_json(
             mcp_server,
             "analyze_document",
@@ -231,7 +229,9 @@ class TestExtractContractMetadata:
     @pytest.mark.asyncio
     async def test_missing_fields_return_null_not_error(self, mcp_server, tmp_path):
         doc_path = tmp_path / "test_minimal.txt"
-        doc_path.write_text("This is a simple agreement with minimal content.", encoding="utf-8")
+        doc_path.write_text(
+            "This is a simple agreement with minimal content.", encoding="utf-8"
+        )
         payload = await call_tool_json(
             mcp_server,
             "extract_contract_metadata",

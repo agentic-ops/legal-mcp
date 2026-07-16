@@ -134,10 +134,10 @@ Revise arguments based on the stress test:
 - Add parenthetical explanations to distinguish adverse cases
 
 ### Step 6 — Citation Validation
-Run `validate_citation(citation)` on all cited authorities. Confirm:
-- No overruled or negatively treated cases cited as good law
-- Pinpoint citations are accurate
-- All citations formatted per the applicable citation manual
+Run `validate_citation(citation)` on all cited authorities for structure and reporter
+formatting only. Separately use an authoritative citator or live legal-data source to
+confirm that no overruled or negatively treated cases are cited as good law and that
+pinpoint citations support the stated propositions.
 
 ### Step 7 — Argument Brief Checklist
 Before finalizing, verify:

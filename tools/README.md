@@ -7,9 +7,9 @@ Every tool accepts structured JSON arguments, returns a `json.dumps(..., indent=
 
 | Module | What it provides |
 |--------|-----------------|
-| `research_tools.py` | `search_precedents`, `search_case_law`, `extract_statute`, `research_legal_issue` — keyword-ranked search over local cases and statutes |
-| `citation_tools.py` | `validate_citation`, `normalize_citation`, `verify_citation_integrity` — Bluebook structure checking and cross-referencing |
-| `contract_tools.py` | `compare_contracts`, `analyze_clauses`, `extract_clauses`, `suggest_clause_alternatives`, `generate_negotiation_guide` — clause-level diff and risk analysis against local templates |
+| `research_tools.py` | `search_precedents`, `search_case_law`, `extract_statute`, `research_legal_issue` — opt-in demo search plus explicitly enabled live research |
+| `citation_tools.py` | `validate_citation`, `normalize_citation`, `check_demo_database` — citation formatting plus clearly labeled demo lookup |
+| `contract_tools.py` | `compare_contracts`, `analyze_clauses`, `extract_clauses`, `suggest_clause_alternatives`, `generate_negotiation_guide` — real clause helpers plus opt-in sample-template workflows |
 | `deep_analysis_tools.py` | `deep_analyze_clause` — keyword heuristics plus optional MCP LLM sampling for deeper clause reasoning; falls back gracefully when the client lacks sampling support |
 | `document_tools.py` | `analyze_document`, `compare_documents`, `export_analysis_report`, `extract_contract_metadata` — risk analysis for real `.docx`/`.txt` files |
 | `brief_tools.py` | `generate_brief_outline`, `create_argument_structure`, `generate_issue_statement` — IRAC-scaffolded brief drafting |
@@ -32,6 +32,11 @@ if is_category_enabled("contract"):
 
 All categories are **enabled by default**. Set `LEGAL_MCP_ENABLE_<CATEGORY>=false` to skip a category at startup.
 See [`feature_flags.py`](../feature_flags.py) and the main [`README.md`](../README.md#feature-flags-tool-categories) for the full flag reference.
+
+Bundled cases, statutes, and sample contracts are independently gated by
+`LEGAL_MCP_DEMO_MODE`, which defaults to `false`. Seed-dependent tools remain
+registered in production mode and return the stable `demo_data_disabled`
+payload.
 
 ## Adding a new tool
 

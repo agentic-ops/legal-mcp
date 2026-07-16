@@ -60,7 +60,10 @@ class TestCheckPrivilegeRisk:
             },
         )
         order = {"LOW": 0, "MEDIUM": 1, "HIGH": 2, "CRITICAL": 3}
-        assert order[with_counsel["privilege_risk"]] <= order[without_counsel["privilege_risk"]]
+        assert (
+            order[with_counsel["privilege_risk"]]
+            <= order[without_counsel["privilege_risk"]]
+        )
 
     @pytest.mark.asyncio
     async def test_result_includes_heppner_note(self, mcp_server, risky_nda_docx):
@@ -95,7 +98,9 @@ class TestCheckPrivilegeRisk:
         assert "error" in payload
 
     @pytest.mark.asyncio
-    async def test_provider_posture_included_in_result(self, mcp_server, risky_nda_docx):
+    async def test_provider_posture_included_in_result(
+        self, mcp_server, risky_nda_docx
+    ):
         payload = await call_tool_json(
             mcp_server,
             "check_privilege_risk",

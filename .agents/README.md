@@ -15,7 +15,7 @@ Teaches an agent the methodology for chaining the Legal MCP Server's 27 tools in
 - **Privilege-safe AI review** — `check_privilege_risk` before routing any document to a cloud inference provider
 - **Legal research** — `search_precedents` / `search_case_law` / `extract_statute` → synthesize findings
 - **Brief drafting** — `generate_brief_outline` → `create_argument_structure` → `generate_issue_statement`
-- **Citation cleanup** — `validate_citation` → `normalize_citation` → `verify_citation_integrity`
+- **Citation cleanup** — `validate_citation` → `normalize_citation`; use authoritative live sources for existence and good-law checks
 - **Deep clause analysis** — `deep_analyze_clause` with MCP sampling fallback
 - **Batch document analysis** — `queue_document_analysis` → poll `get_analysis_status` → `get_analysis_result`
 

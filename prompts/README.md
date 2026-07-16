@@ -10,7 +10,7 @@ MCP prompt implementations — structured workflow templates that guide LLM clie
 |--------|---------|
 | `research_prompts.py` | `precedent_analysis` — step-by-step guide for researching and applying case precedents; `statutory_interpretation` — framework for reading a statute's text, structure, and legislative history |
 | `drafting_prompts.py` | `brief_construction` — scaffolded workflow for drafting a legal brief from issue to conclusion; `clause_comparison` — structured approach to comparing contract clause alternatives |
-| `analysis_prompts.py` | `contract_review` — risk-triage workflow for full contract analysis using `analyze_clauses` and `generate_negotiation_guide`; `citation_validation` — workflow for cleaning and verifying a citation list |
+| `analysis_prompts.py` | `contract_review` — risk-triage workflow for full contract analysis using `analyze_clauses` and `generate_negotiation_guide`; `citation_validation` — formatting cleanup plus authoritative source-checking workflow |
 | `argument_prompts.py` | `argument_development` — IRAC-based argument scaffold for motions and briefs; `authority_integration` — methodology for weaving case law and statutes into a coherent argument |
 | `__init__.py` | `register_all_prompts(mcp)` — wires all four prompt modules into the FastMCP instance |
 
@@ -23,7 +23,7 @@ MCP prompt implementations — structured workflow templates that guide LLM clie
 | `brief_construction` | Scaffold a complete legal brief from issue statement to conclusion |
 | `clause_comparison` | Compare contract clause alternatives and select the lower-risk option |
 | `contract_review` | Full contract risk triage with negotiation guidance |
-| `citation_validation` | Validate, normalize, and verify a list of legal citations |
+| `citation_validation` | Format and normalize citations, then route existence and good-law checks to authoritative sources |
 | `argument_development` | Build an IRAC-structured argument for a motion or brief |
 | `authority_integration` | Integrate case law and statutes into a coherent legal argument |
 

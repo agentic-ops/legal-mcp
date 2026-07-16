@@ -22,8 +22,7 @@ def build_risky_nda_docx(path: Path) -> Path:
         "discretion of the Disclosing Party."
     )
     document.add_paragraph(
-        "Governing Law: This Agreement shall be governed by the laws of "
-        "California."
+        "Governing Law: This Agreement shall be governed by the laws of " "California."
     )
     document.save(str(path))
     return path
@@ -41,8 +40,7 @@ def build_clean_nda_docx(path: Path) -> Path:
         "Term: Obligations survive for three years following termination."
     )
     document.add_paragraph(
-        "Governing Law: This Agreement shall be governed by the laws of "
-        "California."
+        "Governing Law: This Agreement shall be governed by the laws of " "California."
     )
     document.save(str(path))
     return path

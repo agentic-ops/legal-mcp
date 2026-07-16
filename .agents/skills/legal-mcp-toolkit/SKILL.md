@@ -25,9 +25,9 @@ attorney judgment; every workflow ends with a disclaimer, not a conclusion.
 1. **Never present tool output as legal advice.** Every contract/document/
    negotiation/privilege tool response includes a disclaimer field
    (`notice`, `disclaimer`, or similar) — always surface it to the user.
-2. **Prefer local, offline tools first.** `search_live_case_law` and PACER
-   are opt-in and can incur real fees; use local `search_precedents` /
-   `search_case_law` / `extract_statute` unless the user needs live filings.
+2. **Never treat demo content as authority.** Bundled cases, statutes, and
+   contracts require `LEGAL_MCP_DEMO_MODE=true` and every response is labeled
+   demo-only. Use them for demonstrations, never to verify a real citation.
 3. **Prefer CourtListener over PACER** when a live source is genuinely
    needed — PACER bills per page/search and is disabled by default for a
    reason.
@@ -50,7 +50,7 @@ attorney judgment; every workflow ends with a disclaimer, not a conclusion.
 | Category | Tools |
 | --- | --- |
 | Research | `search_precedents`, `search_case_law`, `extract_statute`, `research_legal_issue` |
-| Citation | `validate_citation`, `normalize_citation`, `verify_citation_integrity` |
+| Citation | `validate_citation`, `normalize_citation`, `check_demo_database` |
 | Contract | `compare_contracts`, `analyze_clauses`, `extract_clauses`, `suggest_clause_alternatives`, `generate_negotiation_guide`, `deep_analyze_clause` |
 | Document | `analyze_document`, `compare_documents`, `export_analysis_report`, `extract_contract_metadata` |
 | Privilege | `check_privilege_risk` |
@@ -109,12 +109,13 @@ mentions attorney-client communications or litigation strategy
 ### 5. Legal research
 **Trigger:** "find precedents for...", "what does this statute say", "research this issue"
 
-1. `search_precedents` / `search_case_law` for case law, `extract_statute` for
-   statutory text, `research_legal_issue` to combine both plus optional live sources.
-2. Validate any citation pulled into the response with `validate_citation` or
-   `verify_citation_integrity` before presenting it as accurate.
-3. Only call `search_live_case_law` if local results are insufficient and the
-   user has confirmed live integrations are enabled (`integration_status`).
+1. Read `legal://server-config` to determine whether demo content is active;
+   never present demo results as real authority.
+2. Use `research_legal_issue` or `search_live_case_law` for real case-law
+   research after confirming live integrations are enabled (`integration_status`).
+3. Use `validate_citation` only for structure/reporter-format checks. Confirm
+   existence and good-law status through an authoritative live source and
+   attorney review.
 
 ### 6. Brief / motion drafting
 **Trigger:** "draft a motion", "outline this brief", "argument structure"
@@ -129,8 +130,9 @@ mentions attorney-client communications or litigation strategy
 
 1. `validate_citation` to catch structural issues.
 2. `normalize_citation` to apply Bluebook-style spacing/abbreviations.
-3. `verify_citation_integrity` to cross-check against the case database before
-   telling the user a citation is confirmed accurate.
+3. If demo mode is intentionally active, `check_demo_database` can show whether
+   a citation appears in the sample dataset. A match is not verification that
+   the case exists or remains good law.
 
 ### 8. Batch / async document analysis
 **Trigger:** "queue these contracts for review", "analyze this batch overnight"

@@ -153,9 +153,7 @@ class TestGenerateNegotiationGuide:
         )
         guide = payload["guide"]
         # The client_proposed_nda has an uncapped indemnification clause (HIGH)
-        indemnification_entries = [
-            e for e in guide if e["clause"] == "indemnification"
-        ]
+        indemnification_entries = [e for e in guide if e["clause"] == "indemnification"]
         assert indemnification_entries, "indemnification clause should appear in guide"
         assert indemnification_entries[0]["recommended_position"] == "reject"
 
@@ -167,9 +165,7 @@ class TestGenerateNegotiationGuide:
             {"contract_id": "client_proposed_nda", "party_role": "seller"},
         )
         guide = payload["guide"]
-        indemnification_entries = [
-            e for e in guide if e["clause"] == "indemnification"
-        ]
+        indemnification_entries = [e for e in guide if e["clause"] == "indemnification"]
         assert indemnification_entries
         assert indemnification_entries[0]["recommended_position"] == "negotiate"
 
@@ -180,7 +176,13 @@ class TestGenerateNegotiationGuide:
             "generate_negotiation_guide",
             {"contract_id": "standard_nda_template", "party_role": "buyer"},
         )
-        required_keys = {"clause", "risk_level", "recommended_position", "rationale", "fallback_text"}
+        required_keys = {
+            "clause",
+            "risk_level",
+            "recommended_position",
+            "rationale",
+            "fallback_text",
+        }
         for entry in payload["guide"]:
             assert required_keys.issubset(entry.keys()), f"Missing keys in: {entry}"
 

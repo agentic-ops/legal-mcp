@@ -201,7 +201,11 @@ def register_analysis_queue_tools(mcp) -> None:
 
         if row["status"] != "complete":
             return json.dumps(
-                {"job_id": job_id, "status": row["status"], "message": "Analysis not yet complete."},
+                {
+                    "job_id": job_id,
+                    "status": row["status"],
+                    "message": "Analysis not yet complete.",
+                },
                 indent=2,
             )
 

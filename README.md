@@ -3,8 +3,9 @@
 A [Model Context Protocol](https://modelcontextprotocol.io) (MCP) server for
 structured legal workflows. This **legal MCP server** provides tools, resources,
 and prompts for precedent retrieval, statute analysis, citation validation,
-contract clause comparison, and guided brief scaffolding — all backed by
-inspectable, deterministic local data and optional (opt‑in) live legal databases.
+contract clause comparison, and guided brief scaffolding. Production mode is
+the default: bundled sample legal content is disabled, while real-document
+tools and optional opt-in live legal databases remain available.
 
 > **This server provides legal‑workflow augmentation, not legal advice.** It
 > does not replace attorney review and judgment.
@@ -47,14 +48,16 @@ flowchart LR
   aiClient[AI Assistant]
   inference[Inference Provider]
   mcpServer[Legal MCP Server]
-  localData[Local seed data and files]
+  localData[Real local files]
+  demoData[Opt-in demo content]
   courtlistener[CourtListener / RECAP]
   pacer[PACER]
 
   user -->|"prompts and documents"| aiClient
   aiClient -->|"full conversation context"| inference
   aiClient <-->|"MCP tool calls and JSON responses"| mcpServer
-  mcpServer -->|"offline by default"| localData
+  mcpServer -->|"local processing"| localData
+  mcpServer -.->|"explicit demo mode"| demoData
   mcpServer -.->|"opt-in, free"| courtlistener
   mcpServer -.->|"opt-in, billable"| pacer
 ```
@@ -65,7 +68,9 @@ flowchart LR
 | **AI assistant → MCP server** | Tool arguments (file paths, queries, contract IDs) and JSON responses | Local transport (stdio/SSE/HTTP on your machine) | Tool calls are audit-logged locally (`utils.audit`); responses stay on your network unless you expose the server |
 | **MCP server → external databases** | Search queries to CourtListener or PACER | **Disabled by default** | Enable only when needed; PACER may incur fees (see below) |
 
-**Key takeaway:** this MCP server is **offline and deterministic by default**.
+**Key takeaway:** this MCP server performs local document workflows offline by
+default. It does not expose the bundled sample cases, statutes, or contracts
+unless `LEGAL_MCP_DEMO_MODE=true` is explicitly set.
 The highest privacy risk in most setups is the **inference provider** (OpenAI,
 Anthropic, Google, OpenRouter, etc.) receiving your full prompt context —
 including excerpts returned by these tools. See
@@ -131,6 +136,20 @@ python main.py --transport sse --port 9000  # custom port
 All flags also read from environment variables: `MCP_TRANSPORT`, `HOST`,
 `PORT`, `LOG_LEVEL`.
 
+### Optional demo mode
+
+Bundled cases, statutes, and sample contracts are disabled by default. To use
+them for demonstrations or tests:
+
+```bash
+export LEGAL_MCP_DEMO_MODE=true
+python main.py
+```
+
+On startup the server emits a warning, and every demo-derived payload begins
+with `warning` and `data_mode: "demo"`. Demo case matches are not citation
+verification and must not be presented as real or current legal authority.
+
 ### Use it with the MCP CLI / Inspector directly
 
 The server exposes a module‑level `mcp` object, so you can load it with the
@@ -153,9 +172,9 @@ mcp run main.py:mcp     # runs the server via the CLI
 | Research | `search_case_law` | Case‑law search with relevance ranking and summaries |
 | Research | `extract_statute` | Statute text with optional legislative context |
 | Research | `research_legal_issue` | Multi‑source research across local cases, statutes, and CourtListener |
-| Citation | `validate_citation` | Validate structure and reporter; return issues |
+| Citation | `validate_citation` | Validate structure and reporter format; does not establish existence or good-law status |
 | Citation | `normalize_citation` | Normalize spacing + Bluebook‑style abbreviations |
-| Citation | `verify_citation_integrity` | Cross‑check a citation against the case database |
+| Citation | `check_demo_database` | Check whether a citation appears in explicitly enabled demo case data |
 | Contract | `compare_contracts` | Clause‑level differ with risk flags |
 | Contract | `analyze_clauses` | Rule‑based clause risk analysis; includes `missing_clauses` on full‑contract runs |
 | Contract | `extract_clauses` | Template‑filtered clause extraction |
@@ -177,7 +196,9 @@ mcp run main.py:mcp     # runs the server via the CLI
 | Integrations | `integration_status` | Report which live sources are enabled/configured |
 | Integrations | `search_live_case_law` | Query CourtListener/RECAP or PACER (when enabled) |
 
-**13 contract templates** covering NDAs, MSAs (general + tech), DPAs (Global GDPR + US CCPA/CPRA), HIPAA BAA, Terms of Use, Privacy Policy, Advisor Agreement, California Offer Letter, Post‑Money SAFE, and Cookie Notice.
+Demo mode includes **13 sample contract templates** covering NDAs, MSAs,
+DPAs, HIPAA BAA, Terms of Use, Privacy Policy, Advisor Agreement, California
+Offer Letter, Post-Money SAFE, and Cookie Notice.
 
 ### Resources
 
@@ -223,7 +244,7 @@ Check the current state at any time via the always‑on resource
 | Category | Environment variable | What it controls |
 | --- | --- | --- |
 | Research | `LEGAL_MCP_ENABLE_RESEARCH` | `search_*`, `extract_statute`, `research_legal_issue`; case/statute resources |
-| Citation | `LEGAL_MCP_ENABLE_CITATION` | `validate_citation`, `normalize_citation`, `verify_citation_integrity` |
+| Citation | `LEGAL_MCP_ENABLE_CITATION` | `validate_citation`, `normalize_citation`, `check_demo_database` |
 | Contract | `LEGAL_MCP_ENABLE_CONTRACT` | Contract tools including `deep_analyze_clause`; contract resources |
 | Document | `LEGAL_MCP_ENABLE_DOCUMENT` | `analyze_document`, `compare_documents`, `export_analysis_report`, `extract_contract_metadata` |
 | Privilege | `LEGAL_MCP_ENABLE_PRIVILEGE` | `check_privilege_risk` |
@@ -240,6 +261,20 @@ python main.py
 
 See [`.env.example`](.env.example) for a copy‑paste template including live
 integration credentials.
+
+`LEGAL_MCP_DEMO_MODE` is separate from category flags and defaults to `false`.
+With demo mode off, seed-dependent tools and resources remain discoverable but
+return `error: "demo_data_disabled"`; they never silently query a live source.
+
+### 1.1.0 safety upgrade
+
+- Bundled cases, statutes, and sample contracts now require
+  `LEGAL_MCP_DEMO_MODE=true`.
+- `verify_citation_integrity` was removed. Use `check_demo_database` only for
+  demo lookups; its fields are `found_in_demo_database` and
+  `matched_demo_case`.
+- `validate_citation` checks citation structure and reporter formatting only.
+  It does not prove that a case exists or remains good law.
 
 **Note on `deep_analyze_clause`:** this tool uses MCP
 `sampling/createMessage` to ask the connected client's LLM for deeper clause

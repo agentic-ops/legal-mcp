@@ -60,7 +60,7 @@ class TestResearchLegalIssue:
             },
         )
         assert payload["case_result_count"] >= 1
-        assert payload["cases"][0]["source"] == "local"
+        assert payload["cases"][0]["source"] == "demo_seed"
         assert payload["courtlistener_status"]["enabled"] is False
 
     @pytest.mark.asyncio
@@ -136,7 +136,8 @@ class TestResearchLegalIssue:
             "research_legal_issue",
             {"issue": "material breach"},
         )
-        assert all("source" in case for case in payload["cases"])
+        assert all(case["source"] == "demo_seed" for case in payload["cases"])
+        assert all(case["authoritative"] is False for case in payload["cases"])
 
     @pytest.mark.asyncio
     async def test_no_duplicates_across_sources(self, mcp_server, monkeypatch):

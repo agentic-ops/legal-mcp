@@ -2,6 +2,11 @@
 
 This document provides detailed examples of how legal teams interact with the Legal MCP Server through AI assistants, showcasing the complete workflow from user request to final deliverable.
 
+> **Demo-content requirement:** examples that use bundled case, statute, or
+> contract IDs require `LEGAL_MCP_DEMO_MODE=true`. Those payloads begin with a
+> demo-only warning and are not verified authority. Production mode is the
+> default; use real documents or explicitly enabled live sources for real work.
+
 ## 🏗️ Architecture Overview
 
 ```
@@ -13,7 +18,7 @@ Legal Team → AI Assistant → MCP Server → Tools/Resources/Prompts → Respo
 - [Contract Analysis Workflow](#contract-analysis-workflow)
 - [Legal Research Workflow](#legal-research-workflow)
 - [Brief Drafting Workflow](#brief-drafting-workflow)
-- [Citation Validation Workflow](#citation-validation-workflow)
+- [Citation Formatting and Source-Checking Workflow](#citation-formatting-and-source-checking-workflow)
 - [Statute Analysis Workflow](#statute-analysis-workflow)
 - [Negotiation Guide Workflow](#negotiation-guide-workflow)
 - [Real Document Analysis & Metadata Extraction Workflow](#real-document-analysis--metadata-extraction-workflow)
@@ -374,20 +379,20 @@ Defendant's material breach of delivery terms entitles Plaintiff to summary judg
 
 ---
 
-## ✓ Citation Validation Workflow
+## ✓ Citation Formatting and Source-Checking Workflow
 
-### **Scenario**: Law clerk needs to verify and format citations for a brief
+### **Scenario**: Law clerk needs to format citations and identify which ones require authoritative source checking
 
 #### **Step 1: User Request**
 ```
-Law Clerk: "I have a list of citations that need to be verified and formatted according to 
-Bluebook standards. Can you check their accuracy and provide the properly formatted versions?"
+Law Clerk: "I have citations that need formatting checks. Can you normalize them and tell me
+which ones still need authoritative source checking?"
 ```
 
 #### **Step 2: AI Assistant Processing**
 ```
-AI Assistant: "I'll validate each citation for accuracy and format them according to 
-Bluebook standards. Let me check the citations and provide properly formatted versions."
+AI Assistant: "I'll check structure and reporter formatting. I will treat case existence,
+subsequent history, and good-law status as separate authoritative-source checks."
 ```
 
 #### **Step 3: MCP Server Interactions**
@@ -399,11 +404,7 @@ Bluebook standards. Let me check the citations and provide properly formatted ve
   "params": {
     "name": "validate_citation",
     "arguments": {
-      "citations": [
-        "Smith v. ABC Corp, 2022 Cal.App.4th 1234",
-        "Johnson v. XYZ, 2020 Cal.4th 567",
-        "Davis v. Tech, 2021 Cal.App.4th 890"
-      ],
+      "citation": "Roe v. Wade, 410 U.S. 113",
       "format_standard": "bluebook"
     }
   }
@@ -435,62 +436,25 @@ Bluebook standards. Let me check the citations and provide properly formatted ve
 ```
 
 #### **Step 4: Server Processing**
-1. **Citation Tools** validate each citation against legal databases
+1. **Citation Tools** validate citation structure and reporter formatting only
 2. **Citation Resources** provide formatting rules and standards
 3. **Citation Prompts** guide validation workflow
-4. **Research Tools** verify case existence and details
+4. **Live Research Tools** check existence and details through an explicitly enabled authoritative source
 
 #### **Step 5: Response to Legal Team**
 ```markdown
-## Citation Validation Results
+## Citation Formatting Results
 
-### ✅ Validated Citations:
-
-**1. Smith v. ABC Corp**
-- **Original**: Smith v. ABC Corp, 2022 Cal.App.4th 1234
-- **Validated**: ✅ Accurate
-- **Bluebook Format**: Smith v. ABC Corp, 2022 Cal.App.4th 1234
-- **Status**: Ready to use
-
-**2. Johnson v. XYZ Industries**
-- **Original**: Johnson v. XYZ, 2020 Cal.4th 567
-- **Validated**: ⚠️ Incomplete case name
-- **Corrected**: Johnson v. XYZ Industries, 2020 Cal.4th 567
-- **Bluebook Format**: Johnson v. XYZ Indus., 2020 Cal.4th 567
-- **Status**: Updated and ready
-
-**3. Davis v. Tech Solutions**
-- **Original**: Davis v. Tech, 2021 Cal.App.4th 890
-- **Validated**: ⚠️ Incomplete case name
-- **Corrected**: Davis v. Tech Solutions, 2021 Cal.App.4th 890
-- **Bluebook Format**: Davis v. Tech Sols., 2021 Cal.App.4th 890
-- **Status**: Updated and ready
-
-### 📋 Bluebook Formatting Notes:
-
-**Case Name Abbreviations:**
-- "Corporation" → "Corp."
-- "Industries" → "Indus."
-- "Solutions" → "Sols."
-
-**Court Abbreviations:**
-- "Cal.App.4th" → California Court of Appeal, Fourth District
-- "Cal.4th" → California Supreme Court
-
-**Pinpoint Citations:**
-- Add specific page numbers when referencing particular holdings
-- Use "at" for pinpoint citations: "Smith v. ABC Corp, 2022 Cal.App.4th 1234, 1240"
-
-### ✅ Final Citation List:
-1. Smith v. ABC Corp, 2022 Cal.App.4th 1234
-2. Johnson v. XYZ Indus., 2020 Cal.4th 567
-3. Davis v. Tech Sols., 2021 Cal.App.4th 890
+- **Input:** Roe v. Wade, 410 U.S. 113
+- **Structure/reporter format:** Valid
+- **Normalized form:** Roe v. Wade, 410 U.S. 113
+- **Existence and subsequent history:** Not checked by `validate_citation`
+- **Good-law status:** Not checked; confirm through an authoritative citator
 
 ### Next Steps:
-1. Update brief with corrected citations
-2. Add pinpoint citations for specific holdings
-3. Verify all citations in final proofread
-4. Submit for partner review
+1. Check the authority and subsequent history through an authoritative source
+2. Add pinpoint citations for the propositions cited
+3. Have counsel review before filing
 ```
 
 ---
@@ -1005,7 +969,7 @@ tool calls described in the workflows below.
 | [Contract Analysis](#contract-analysis-workflow) | `CTRX` — Contract Workbench | `compare_contracts`, `analyze_clauses`, `suggest_clause_alternatives` |
 | [Legal Research](#legal-research-workflow) | `PREC` — Precedent Search; `CHAT` — Paralegal | `search_precedents`, `search_case_law`, `research_legal_issue` |
 | [Brief Drafting](#brief-drafting-workflow) | `BRF` — Brief Builder | `generate_brief_outline`, `create_argument_structure`, `generate_issue_statement` |
-| [Citation Validation](#citation-validation-workflow) | `CITE` — Citation Console | `validate_citation`, `normalize_citation`, `verify_citation_integrity` |
+| [Citation Validation](#citation-formatting-and-source-checking-workflow) | `CITE` — Citation Console | `validate_citation`, `normalize_citation`, `check_demo_database` (demo matching only) |
 | [Statute Analysis](#statute-analysis-workflow) | `STAT` — Statute Viewer | `extract_statute` |
 | [Negotiation Guide](#negotiation-guide-workflow) | `CTRX` — Contract Workbench | `generate_negotiation_guide`, `analyze_clauses` |
 | [Real Document Analysis & Metadata](#real-document-analysis--metadata-extraction-workflow) | `DOCA` — Document Analyzer | `analyze_document`, `extract_contract_metadata`, `export_analysis_report` |

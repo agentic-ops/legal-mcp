@@ -22,6 +22,8 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+from demo_mode import is_demo_mode
+
 logger = logging.getLogger("legal_mcp.utils")
 
 DATA_DIR = Path(__file__).resolve().parent / "data"
@@ -46,8 +48,13 @@ class LegalDataManager:
     ``data/`` and can be refreshed at runtime via :meth:`reload`.
     """
 
-    def __init__(self, data_dir: Optional[os.PathLike[str] | str] = None) -> None:
+    def __init__(
+        self,
+        data_dir: Optional[os.PathLike[str] | str] = None,
+        demo_mode: Optional[bool] = None,
+    ) -> None:
         self.data_dir = Path(data_dir) if data_dir is not None else DATA_DIR
+        self.demo_mode = is_demo_mode() if demo_mode is None else demo_mode
         self._cache: Dict[str, Any] = {}
 
     # -- internal helpers -------------------------------------------------
@@ -71,14 +78,20 @@ class LegalDataManager:
     # -- raw collections --------------------------------------------------
     @property
     def cases(self) -> Dict[str, Any]:
+        if not self.demo_mode:
+            return {}
         return self._load("cases", "cases/cases.json")
 
     @property
     def statutes(self) -> Dict[str, Any]:
+        if not self.demo_mode:
+            return {}
         return self._load("statutes", "statutes/statutes.json")
 
     @property
     def contracts(self) -> Dict[str, Any]:
+        if not self.demo_mode:
+            return {}
         return self._load("contracts", "contracts/contracts.json")
 
     @property
@@ -342,8 +355,12 @@ class CitationParser:
         }
 
 
-@lru_cache(maxsize=1)
+@lru_cache(maxsize=2)
+def _get_data_manager(demo_mode: bool) -> LegalDataManager:
+    return LegalDataManager(demo_mode=demo_mode)
+
+
 def get_data_manager() -> LegalDataManager:
     """Return the process-wide :class:`LegalDataManager` singleton."""
 
-    return LegalDataManager()
+    return _get_data_manager(is_demo_mode())

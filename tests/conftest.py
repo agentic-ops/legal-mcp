@@ -17,7 +17,7 @@ from utils import CitationParser, LegalDataManager
 def data_manager() -> LegalDataManager:
     """A LegalDataManager backed by the repository's seed data."""
 
-    return LegalDataManager()
+    return LegalDataManager(demo_mode=True)
 
 
 @pytest.fixture(scope="session")
@@ -38,10 +38,19 @@ def sample_legal_data(data_manager: LegalDataManager) -> Dict[str, Any]:
     }
 
 
-@pytest.fixture(scope="session")
-def mcp_server():
-    """A fully-registered FastMCP server instance for integration tests."""
+@pytest.fixture
+def mcp_server(monkeypatch):
+    """A demo-enabled FastMCP server for legacy seed-data integration tests."""
 
+    monkeypatch.setenv("LEGAL_MCP_DEMO_MODE", "true")
+    return create_server()
+
+
+@pytest.fixture
+def production_mcp_server(monkeypatch):
+    """A production-default FastMCP server with demo content disabled."""
+
+    monkeypatch.delenv("LEGAL_MCP_DEMO_MODE", raising=False)
     return create_server()
 
 

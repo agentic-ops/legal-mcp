@@ -1,7 +1,9 @@
 # data/
 
-JSON seed data that powers the server offline — no network calls needed.
-All data is loaded at startup by `LegalDataManager` in `utils.py` via `get_data_manager()` (a process-wide singleton).
+JSON assets used by the server. Bundled cases, statutes, and contracts are demo
+content and are not loaded unless `LEGAL_MCP_DEMO_MODE=true`. Citation standards
+and neutral brief frameworks remain available in production mode.
+Data is loaded by `LegalDataManager` in `utils.py` via `get_data_manager()`.
 Adding or editing entries here requires **no code changes** — the manager loads everything dynamically.
 
 For live court records and filings, see [`integrations/`](../integrations/).
@@ -24,7 +26,7 @@ For live court records and filings, see [`integrations/`](../integrations/).
 
 ## Extending the data
 
-1. **Add a case:** insert a new entry into `data/cases/cases.json` following the existing schema. The server picks it up on next restart.
+1. **Add a demo case:** insert a new entry into `data/cases/cases.json` following the existing schema. The server picks it up on next restart when demo mode is enabled.
 2. **Add a statute:** insert into `data/statutes/statutes.json`.
 3. **Add a contract template:** insert into `data/contracts/contracts.json`; follow the clause structure used by existing templates so `analyze_clauses` can score it.
 4. **Add a brief framework:** insert into `data/templates/brief_frameworks.json` with a unique `id` matching the case type string your tools will pass.

@@ -30,20 +30,23 @@ class TestCitationTools:
         assert "Indus." in payload["normalized"]
 
     @pytest.mark.asyncio
-    async def test_verify_citation_integrity_found(self, mcp_server):
+    async def test_check_demo_database_found(self, mcp_server):
         payload = await call_tool_json(
             mcp_server,
-            "verify_citation_integrity",
+            "check_demo_database",
             {"citation": "2022 Cal.App.4th 1234"},
         )
-        assert payload["found_in_database"] is True
-        assert payload["matched_case"]["name"] == "Smith v. ABC Corp"
+        assert list(payload)[0] == "warning"
+        assert payload["found_in_demo_database"] is True
+        assert payload["matched_demo_case"]["name"] == "Smith v. ABC Corp"
+        assert "found_in_database" not in payload
 
     @pytest.mark.asyncio
-    async def test_verify_citation_integrity_missing(self, mcp_server):
+    async def test_check_demo_database_missing(self, mcp_server):
         payload = await call_tool_json(
             mcp_server,
-            "verify_citation_integrity",
+            "check_demo_database",
             {"citation": "999 U.S. 999"},
         )
-        assert payload["found_in_database"] is False
+        assert list(payload)[0] == "warning"
+        assert payload["found_in_demo_database"] is False

@@ -9,21 +9,21 @@ class TestLegalDataManager:
     """Test cases for LegalDataManager."""
 
     def test_initialization(self):
-        manager = LegalDataManager()
+        manager = LegalDataManager(demo_mode=True)
         stats = manager.stats()
         assert stats["cases"] >= 1
         assert stats["statutes"] >= 1
         assert stats["contracts"] >= 1
 
     def test_data_loading(self):
-        manager = LegalDataManager()
+        manager = LegalDataManager(demo_mode=True)
         assert "smith-v-abc-corp-2022" in manager.cases
         case = manager.get_case("smith-v-abc-corp-2022")
         assert case is not None
         assert case["citation"] == "2022 Cal.App.4th 1234"
 
     def test_search_cases_ranks_by_relevance(self):
-        manager = LegalDataManager()
+        manager = LegalDataManager(demo_mode=True)
         results = manager.search_cases("delivery timing breach", "CA")
         assert results, "expected at least one CA result"
         scores = [r["relevance_score"] for r in results]
@@ -31,7 +31,7 @@ class TestLegalDataManager:
         assert all(r["jurisdiction"] == "CA" for r in results)
 
     def test_get_contract_resolves_alias(self):
-        manager = LegalDataManager()
+        manager = LegalDataManager(demo_mode=True)
         contract = manager.get_contract("NDA_v1")
         assert contract is not None
         assert contract["id"] == "standard_nda_template"
@@ -41,6 +41,14 @@ class TestLegalDataManager:
         framework = manager.get_brief_framework("contract_breach")
         assert framework is not None
         assert framework["id"] == "summary_judgment"
+
+    def test_production_mode_gates_sample_legal_content(self):
+        manager = LegalDataManager(demo_mode=False)
+        assert manager.cases == {}
+        assert manager.statutes == {}
+        assert manager.contracts == {}
+        assert manager.citation_standards["reporters"]
+        assert manager.brief_frameworks
 
 
 class TestCitationParser:

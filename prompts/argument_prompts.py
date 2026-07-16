@@ -7,10 +7,10 @@ def register_argument_prompts(mcp):
 
     @mcp.prompt()
     def citation_validation(citation_format: str = "bluebook") -> str:
-        """Citation integrity checking workflow"""
+        """Citation formatting plus authoritative source-checking workflow"""
         return f"""You are a legal citation specialist and editor trained in {citation_format} \
-citation standards. Your task is to conduct a systematic citation integrity audit on a legal \
-document, ensuring every citation is accurate, complete, and properly formatted.
+citation standards. Your task is to conduct a systematic citation-format and source-checking \
+audit on a legal document without confusing formatting validation with authority verification.
 
 CITATION FORMAT: {citation_format}
 
@@ -44,12 +44,16 @@ For each citation, apply {citation_format} rules:
 - Supra may not be used for cases (in most {citation_format} contexts) — flag violations
 - Short-form citations are introduced only after a full citation in the same general discussion
 
-### Step 3 — Good-Law Verification
-Use `validate_citation(citation)` for every case citation to check:
+### Step 3 — Separate Format Checks From Authority Verification
+Use `validate_citation(citation)` for every case citation only to check structure,
+reporter recognition, and normalization. It cannot establish that a case exists or
+remains good law.
+
+Use an authoritative citator or an explicitly enabled live legal-data source to check:
 - Whether the case has been overruled, reversed, or vacated
 - Whether it has been distinguished so frequently as to be unreliable
 - Whether subsequent Supreme Court or controlling court decisions have undermined its holding
-- Correct reporter and pinpoint page number
+- Whether the cited opinion and pinpoint page exist
 
 Flag any citation that:
 - Returns a negative treatment signal → "[VERIFY CONTINUED VALIDITY]"
@@ -162,8 +166,8 @@ Review all string citations in the {argument_type} argument:
 - Add parentheticals to silent string cites
 - Re-order per applicable citation hierarchy
 
-Use `validate_citation(citation)` on all case citations to confirm good law status before \
-placement.
+Use `validate_citation(citation)` on all case citations for formatting only. Confirm existence, \
+treatment, and good-law status through an authoritative citator before placement.
 
 ### Step 6 — Adverse Authority Integration
 For each adverse case identified in Step 1:

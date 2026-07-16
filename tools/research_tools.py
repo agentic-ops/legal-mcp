@@ -1,9 +1,8 @@
 """Precedent retrieval and statute extraction tools.
 
-These tools query the local legal seed data. They perform no external
-network calls in this build; adapters for CourtListener/RECAP and PACER are
-planned (see README). Any future paid-database integration must respect the
-cost warnings documented in the README.
+These tools query explicitly enabled demo content and optional live sources.
+Bundled sample legal content is disabled in production mode. Any paid-database
+integration must respect the cost warnings documented in the README.
 """
 
 from __future__ import annotations
@@ -11,11 +10,13 @@ from __future__ import annotations
 import json
 from typing import Any, Dict, List, Optional
 
+from demo_mode import demo_data_disabled_payload, demo_payload
 from integrations import CourtListenerClient, get_integration_settings
 from utils import audit, get_data_manager
 
 FEE_NOTICE = (
-    "Results are from local seed data. Live sources (CourtListener/RECAP, "
+    "Results are from explicitly enabled demo seed data, not verified legal "
+    "authority. Live sources (CourtListener/RECAP, "
     "PACER) are optional and disabled by default; enable them via feature "
     "flags and query them with the 'search_live_case_law' tool. Check "
     "'integration_status' first. PACER usage may incur fees."
@@ -59,13 +60,19 @@ def register_research_tools(mcp) -> None:
         are enabled; see README.
         """
         audit("search_precedents", query=query, jurisdiction=jurisdiction)
+        if not data.demo_mode:
+            return json.dumps(
+                demo_data_disabled_payload("Local precedent search"), indent=2
+            )
         matches = data.search_cases(query, jurisdiction)
-        result = {
-            "query": query,
-            "jurisdiction": jurisdiction,
-            "result_count": len(matches),
-            "results": [
+        result = demo_payload(
+            query=query,
+            jurisdiction=jurisdiction,
+            result_count=len(matches),
+            results=[
                 {
+                    "source": "demo_seed",
+                    "authoritative": False,
                     "id": c["id"],
                     "name": c["name"],
                     "citation": c["citation"],
@@ -76,27 +83,40 @@ def register_research_tools(mcp) -> None:
                 }
                 for c in matches
             ],
-            "notice": FEE_NOTICE,
-        }
+            notice=FEE_NOTICE,
+        )
         return json.dumps(result, indent=2)
 
     @mcp.tool()
     def extract_statute(statute_id: str, context: bool = True) -> str:
         """Extract statute text with optional contextual analysis."""
         audit("extract_statute", statute_id=statute_id, context=context)
+        if not data.demo_mode:
+            return json.dumps(
+                demo_data_disabled_payload(
+                    "Bundled statute lookup",
+                    [
+                        "Use a verified statute source or user-supplied document.",
+                        "Set LEGAL_MCP_DEMO_MODE=true only for demonstrations or testing.",
+                    ],
+                ),
+                indent=2,
+            )
         statute = data.get_statute(statute_id)
         if statute is None:
             return json.dumps(
-                {"statute_id": statute_id, "error": "Statute not found."},
+                demo_payload(statute_id=statute_id, error="Statute not found."),
                 indent=2,
             )
-        result = {
-            "id": statute["id"],
-            "title": statute["title"],
-            "citation": statute["citation"],
-            "jurisdiction": statute["jurisdiction"],
-            "text": statute["text"],
-        }
+        result = demo_payload(
+            source="demo_seed",
+            authoritative=False,
+            id=statute["id"],
+            title=statute["title"],
+            citation=statute["citation"],
+            jurisdiction=statute["jurisdiction"],
+            text=statute["text"],
+        )
         if context:
             result["context"] = {
                 "enacted": statute.get("enacted"),
@@ -114,13 +134,19 @@ def register_research_tools(mcp) -> None:
         are enabled; see README.
         """
         audit("search_case_law", query=query, jurisdiction=jurisdiction)
+        if not data.demo_mode:
+            return json.dumps(
+                demo_data_disabled_payload("Local case-law search"), indent=2
+            )
         matches = data.search_cases(query, jurisdiction)
-        result = {
-            "query": query,
-            "jurisdiction": jurisdiction,
-            "result_count": len(matches),
-            "results": [
+        result = demo_payload(
+            query=query,
+            jurisdiction=jurisdiction,
+            result_count=len(matches),
+            results=[
                 {
+                    "source": "demo_seed",
+                    "authoritative": False,
                     "id": c["id"],
                     "name": c["name"],
                     "citation": c["citation"],
@@ -133,8 +159,8 @@ def register_research_tools(mcp) -> None:
                 }
                 for c in matches
             ],
-            "notice": FEE_NOTICE,
-        }
+            notice=FEE_NOTICE,
+        )
         return json.dumps(result, indent=2)
 
     @mcp.tool()
@@ -155,10 +181,11 @@ def register_research_tools(mcp) -> None:
             include_statutes=include_statutes,
         )
 
-        local_cases = data.search_cases(issue, jurisdiction)
+        local_cases = data.search_cases(issue, jurisdiction) if data.demo_mode else []
         local_case_results = [
             {
-                "source": "local",
+                "source": "demo_seed",
+                "authoritative": False,
                 "id": case["id"],
                 "name": case["name"],
                 "citation": case["citation"],
@@ -178,13 +205,16 @@ def register_research_tools(mcp) -> None:
         live_payload = courtlistener.search(issue)
         live_status = {
             "enabled": live_payload.get("enabled"),
-            "configured": live_payload.get("configured"),
+            "configured": settings.courtlistener.configured,
             "message": live_payload.get("message"),
+            "error": live_payload.get("error"),
         }
         for item in live_payload.get("results", []):
             live_case_results.append(
                 {
                     "source": "courtlistener",
+                    "authoritative": False,
+                    "verification_required": True,
                     "name": item.get("caseName") or item.get("case_name"),
                     "citation": item.get("citation") or item.get("citeCount"),
                     "court": item.get("court"),
@@ -198,10 +228,11 @@ def register_research_tools(mcp) -> None:
         merged_cases = _merge_case_results(local_case_results, live_case_results)
 
         statutes: List[Dict[str, Any]] = []
-        if include_statutes:
+        if include_statutes and data.demo_mode:
             statutes = [
                 {
-                    "source": "local",
+                    "source": "demo_seed",
+                    "authoritative": False,
                     "id": statute["id"],
                     "title": statute["title"],
                     "citation": statute["citation"],
@@ -212,16 +243,44 @@ def register_research_tools(mcp) -> None:
                 for statute in data.search_statutes(issue, jurisdiction)
             ]
 
-        result = {
+        source_available = bool(
+            data.demo_mode
+            or (
+                settings.courtlistener.enabled
+                and settings.courtlistener.configured
+                and not live_payload.get("error")
+            )
+        )
+        fields: Dict[str, Any] = {
             "issue": issue,
             "jurisdiction": jurisdiction,
+            "available": source_available,
             "case_result_count": len(merged_cases),
             "cases": merged_cases,
             "statutes": statutes if include_statutes else None,
+            "demo_data_included": data.demo_mode,
             "courtlistener_status": live_status,
             "notice": (
                 "Aggregated research scaffold for attorney review only. "
                 "Not legal advice."
             ),
         }
+        if not source_available:
+            fields["error"] = "no_research_source_enabled"
+            fields["message"] = (
+                "No research source is available. Demo data is disabled and "
+                "CourtListener is not enabled and configured."
+            )
+            fields["next_steps"] = [
+                "Enable and configure CourtListener for live case-law research.",
+                "Set LEGAL_MCP_DEMO_MODE=true only for demonstrations or testing.",
+            ]
+        result = (
+            demo_payload(**fields)
+            if data.demo_mode
+            else {
+                "data_mode": "production",
+                **fields,
+            }
+        )
         return json.dumps(result, indent=2)

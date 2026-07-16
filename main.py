@@ -19,6 +19,7 @@ import os
 
 from mcp.server.fastmcp import FastMCP
 
+from demo_mode import DEMO_MODE_ENV, is_demo_mode
 from prompts import register_all_prompts
 from resources import register_all_resources
 from tools import register_all_tools
@@ -32,12 +33,24 @@ logging.basicConfig(
 logger = logging.getLogger("legal_mcp")
 
 SERVER_NAME = "Legal Research & Paralegal MCP Server"
-INSTRUCTIONS = (
-    "Structured legal workflow tools for precedent retrieval, statute "
-    "analysis, citation validation, contract clause comparison, and brief "
-    "scaffolding. Operates on local seed data; provides workflow "
-    "augmentation, not legal advice."
-)
+
+
+def server_instructions() -> str:
+    """Describe the server without obscuring whether demo content is active."""
+
+    base = (
+        "Structured legal workflow tools for research, citation-format analysis, "
+        "contract review, and brief scaffolding. Provides workflow augmentation, "
+        "not legal advice."
+    )
+    if is_demo_mode():
+        return (
+            f"{base} DEMO DATA ONLY: bundled sample legal content is enabled and "
+            "is not verified legal authority or user-supplied content."
+        )
+    return (
+        f"{base} Production mode is active; bundled sample legal content is disabled."
+    )
 
 
 def create_server(host: str = "127.0.0.1", port: int = 8000) -> FastMCP:
@@ -45,7 +58,7 @@ def create_server(host: str = "127.0.0.1", port: int = 8000) -> FastMCP:
 
     server = FastMCP(
         SERVER_NAME,
-        instructions=INSTRUCTIONS,
+        instructions=server_instructions(),
         host=host,
         port=port,
     )
@@ -57,7 +70,23 @@ def create_server(host: str = "127.0.0.1", port: int = 8000) -> FastMCP:
     categories = enabled_categories()
     logger.info("Registered legal data: %s", stats)
     logger.info("Enabled tool categories: %s", categories)
-    audit("server_initialized", **stats, enabled_categories=categories)
+    if is_demo_mode():
+        logger.warning(
+            "DEMO MODE ENABLED via %s: fictional/sample legal content is active "
+            "and must not be treated as verified authority.",
+            DEMO_MODE_ENV,
+        )
+    else:
+        logger.info(
+            "Production mode active: bundled sample cases, statutes, and contracts "
+            "were not loaded."
+        )
+    audit(
+        "server_initialized",
+        **stats,
+        demo_mode=is_demo_mode(),
+        enabled_categories=categories,
+    )
     return server
 
 

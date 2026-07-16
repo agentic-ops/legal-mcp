@@ -10,6 +10,7 @@ from __future__ import annotations
 import json
 from typing import Optional
 
+from demo_mode import demo_data_disabled_payload, demo_payload
 from utils import CitationParser, audit, get_data_manager
 
 
@@ -21,7 +22,10 @@ def register_citation_tools(mcp) -> None:
 
     @mcp.tool()
     def validate_citation(citation: str, format_standard: str = "bluebook") -> str:
-        """Validate and normalize citation format."""
+        """Validate citation structure and reporter format only.
+
+        This does not establish that a case exists or remains good law.
+        """
         audit("validate_citation", citation=citation, standard=format_standard)
         report = parser.validate(citation, format_standard)
         return json.dumps(report, indent=2)
@@ -38,9 +42,24 @@ def register_citation_tools(mcp) -> None:
         return json.dumps(result, indent=2)
 
     @mcp.tool()
-    def verify_citation_integrity(citation: str) -> str:
-        """Verify citation integrity against the local case database."""
-        audit("verify_citation_integrity", citation=citation)
+    def check_demo_database(citation: str) -> str:
+        """Check whether a citation appears in the bundled demo case data.
+
+        A match is not verification that a case exists or remains good law.
+        """
+        audit("check_demo_database", citation=citation)
+        if not data.demo_mode:
+            return json.dumps(
+                demo_data_disabled_payload(
+                    "Demo citation lookup",
+                    [
+                        "Use validate_citation for structure and reporter formatting.",
+                        "Enable and configure CourtListener for live case-law research.",
+                        "Set LEGAL_MCP_DEMO_MODE=true only for demonstrations or testing.",
+                    ],
+                ),
+                indent=2,
+            )
         parsed = parser.parse(citation)
         normalized_core = None
         if parsed:
@@ -53,11 +72,11 @@ def register_citation_tools(mcp) -> None:
             if normalized_core and case_core == normalized_core:
                 match = case
                 break
-        result = {
-            "input": citation,
-            "parsed": parsed,
-            "found_in_database": match is not None,
-            "matched_case": (
+        result = demo_payload(
+            input=citation,
+            parsed=parsed,
+            found_in_demo_database=match is not None,
+            matched_demo_case=(
                 {
                     "id": match["id"],
                     "name": match["name"],
@@ -66,5 +85,5 @@ def register_citation_tools(mcp) -> None:
                 if match
                 else None
             ),
-        }
+        )
         return json.dumps(result, indent=2)
